@@ -1,16 +1,14 @@
-#import subprocess subprocess.run(["tesseract"], shell=True)
-from PIL import Image
-import pytesseract
 from DataExtractor import DataExtractor
-import cv2
-from matplotlib import pyplot as plt
+from PostProcess import PostProcess
 
 
 def begin():
 
     ex = DataExtractor("w4a.jpg")
+
 #    ex.showrois()
-    print(ex.extract())
+    post = PostProcess()
+    post.getsub(string=ex.extract(threshtype="otsu"))
 
     return
 

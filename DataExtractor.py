@@ -1,6 +1,7 @@
 import cv2
 import pytesseract
 
+
 class DataExtractor:
     def __init__(self,
                  filename):
@@ -14,10 +15,13 @@ class DataExtractor:
     def preprocess(self,
                    threshtype):
         gray = cv2.cvtColor(self.image, cv2.COLOR_BGR2GRAY)
+        print(threshtype)
         if threshtype == "mean":
-            thresh = cv2.threshold(gray, 0, 255, cv2.THRESH_BINARY_INV)[1]
+            thresh = cv2.threshold(gray, 180, 255, cv2.THRESH_BINARY_INV)[1]
         else:
             thresh = cv2.threshold(gray, 0, 255, cv2.THRESH_BINARY_INV | cv2.THRESH_OTSU)[1]
+#        cv2.imshow('captcha_result', thresh)       uncomment show preprocessing results
+#        cv2.waitKey()
         return thresh
 
     def showrois(self,  #zdetekować wszystko jako jeden duży jak jest fuży gradient na rogach
@@ -38,8 +42,8 @@ class DataExtractor:
 
     def extract(self,
                 threshtype="otsu"):
-        self.preprocess(threshtype)
-        return pytesseract.image_to_string(lang='pol', image=self.image)
+        thresh = self.preprocess(threshtype)
+        return pytesseract.image_to_string(lang='pol', image=thresh)
 
 
 
