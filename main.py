@@ -9,9 +9,9 @@ from matplotlib import pyplot as plt
 def begin():
 
     ex = DataExtractor("w4a.jpg")
-    strings = ex.extracttext()
-    for string in strings:
-        print(string)
+#    ex.showrois()
+    print(ex.extract())
+
     return
 
 
