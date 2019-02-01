@@ -1,6 +1,7 @@
 from DataExtractor import DataExtractor
 from PostProcess import PostProcess
-
+from Database.DataBase import DataBase
+import json
 
 def begin():
 
@@ -14,7 +15,13 @@ def begin():
 
 
 def main():
-    begin()
+
+    new_user = json.loads(open("Database/new user.json").read())
+    DataBase.add_user(new_user)
+
+    if DataBase.verify_user(name="Wonsz", password="rzeczny"):
+        #   db = DataBase("Wonsz")
+        print("Wonsz verified!")
 
 
 if __name__ == "__main__":
