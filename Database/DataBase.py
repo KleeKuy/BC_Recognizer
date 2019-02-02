@@ -1,7 +1,16 @@
 import json
 import threading
+from enum import Enum
 
 USERS_DATABSE = "Database/users.json"
+
+
+# Users database access modes:
+class Mode(Enum):
+    VERIFY_USER = 1
+    ADD_USER = 2
+    UPDATE_USER = 3
+    REMOVE_USER = 4
 
 
 class DataBase:
@@ -28,14 +37,21 @@ class DataBase:
                       name):
         return
 
-    # TODO
-    def remove_user(self,
-                    name,
-                    password):
+    @staticmethod
+    def update_user(user,
+                    user_db):
+        DataBase.remove_user(user_db)
+        DataBase.add_user(user)
         return
 
-    # TODO
-    def change_usr_data(self):
+    @staticmethod
+    def remove_user(user_db):
+        with open(USERS_DATABSE, 'r') as js:
+            data = json.loads(js.read())
+            del data[user_db.name]
+        with open(USERS_DATABSE, 'w') as js:
+            json.dump(data, js)
+            # TODO assert termination of connection, and that db instance is None, add database removal
         return
 
     # TODO
@@ -59,6 +75,7 @@ class DataBase:
                 return False
             try:
                 if data[name]["password"] == password:
+                    print("!23")
                     return True
             except KeyError:
                 print("unable to verify")
@@ -68,11 +85,26 @@ class DataBase:
 
     @staticmethod
     def add_user(user):
-        lock = threading.Lock()  #TODO synchronizing and error handling
+        with open(USERS_DATABSE, 'r') as js:
+            data = json.loads(js.read())
+            data.update(user)
+        with open(USERS_DATABSE, 'w') as js:
+            json.dump(data, js)
+        return
+
+    @staticmethod
+    def access_users(mode,
+                     user=None,
+                     password=None,
+                     user_db=None):
+        lock = threading.Lock()
         with lock:
-            with open(USERS_DATABSE, 'r') as js:
-                data = json.loads(js.read())
-                data.update(user)
-            with open(USERS_DATABSE, 'w') as js:
-                json.dump(data, js)
+            if mode == Mode.VERIFY_USER:
+                return DataBase.verify_user(password, user)
+            elif mode == Mode.ADD_USER:
+                DataBase.add_user(user)
+            elif mode == Mode.UPDATE_USER:
+                user_db.update_user(user, user_db)
+            elif mode == Mode.REMOVE_USER:
+                user_db.remove_user(user_db)
         return

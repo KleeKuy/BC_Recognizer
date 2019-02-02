@@ -1,6 +1,6 @@
 from DataExtractor import DataExtractor
 from PostProcess import PostProcess
-from Database.DataBase import DataBase
+from Database.DataBase import DataBase, Mode
 import json
 
 def begin():
@@ -16,12 +16,29 @@ def begin():
 
 def main():
 
-    new_user = json.loads(open("Database/new user.json").read())
-    DataBase.add_user(new_user)
+    def add_user(user): DataBase.access_users(mode=Mode.ADD_USER, user=user)
 
-    if DataBase.verify_user(name="Wonsz", password="rzeczny"):
-        #   db = DataBase("Wonsz")
+    def verify_user(user, password): return DataBase.access_users(mode=Mode.VERIFY_USER, user=user, password=password)
+
+    new_user = json.loads(open("Database/new user.json").read())
+    add_user(user=new_user)
+    updated_user = json.loads(open("Database/updated user.json").read())
+
+    if verify_user("Wonsz", "rzeczny"):
         print("Wonsz verified!")
+        db = DataBase("Wonsz")
+
+        def remove_user():
+            DataBase.access_users(mode=Mode.REMOVE_USER, user_db=db)
+
+        def update_user(user):
+            DataBase.access_users(mode=Mode.UPDATE_USER, user_db=db, user=user)
+
+        update_user(updated_user)
+        remove_user()
+
+    else:
+        print("unable to verify")
 
 
 if __name__ == "__main__":
