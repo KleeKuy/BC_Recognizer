@@ -1,6 +1,7 @@
 from DataExtractor import DataExtractor
 from PostProcess import PostProcess
-from Database.DataBase import DataBase, Mode
+from Database.DataBase import DataBase
+from Database.Utils import Mode
 import json
 
 def begin():
