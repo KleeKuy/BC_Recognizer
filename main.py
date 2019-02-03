@@ -1,8 +1,10 @@
 from DataExtractor import DataExtractor
 from PostProcess import PostProcess
 from Database.DataBase import DataBase
-from Database.Utils import Mode
+from Database.Utils import Mode, CONST
+from Database.UsersDatabase import UsersDatabase
 import json
+
 
 def begin():
 
@@ -17,30 +19,37 @@ def begin():
 
 def main():
 
-    def add_user(user): DataBase.access_users(mode=Mode.ADD_USER, user=user)
+    USER = "Wonsz"
+    password = "rzeczny"
 
-    def verify_user(user, password): return DataBase.access_users(mode=Mode.VERIFY_USER, user=user, password=password)
+    users_db = UsersDatabase("users")
 
-    new_user = json.loads(open("Database/new user.json").read())
+    def add_user(user): users_db.sync_access(mode=Mode.ADD_USER, user=user)
+
+    def verify_user(user, password): return users_db.sync_access(mode=Mode.VERIFY_USER, user=user, password=password)
+
+    def update_user(user): users_db.sync_access(mode=Mode.UPDATE_USER, user=user)
+
+    def remove_user(user): users_db.sync_access(mode=Mode.REMOVE_USER, user=user)
+
+    new_user = json.loads(open("Database/Data/new user.json").read())
     add_user(user=new_user)
-    updated_user = json.loads(open("Database/updated user.json").read())
+    updated_user = json.loads(open("Database/Data/updated user.json").read())
 
-    if verify_user("Wonsz", "rzeczny"):
+    if verify_user(USER, password):
         print("Wonsz verified!")
-        db = DataBase("Wonsz")
-
-        def remove_user():
-            DataBase.access_users(mode=Mode.REMOVE_USER, user_db=db)
-
-        def update_user(user):
-            DataBase.access_users(mode=Mode.UPDATE_USER, user_db=db, user=user)
+        #db = DataBase("Wonsz")
 
         update_user(updated_user)
-        remove_user()
-
+        #remove_user("Wonsz")
     else:
         print("unable to verify")
 
+    db = DataBase(USER)
+    BC1 = json.loads(open(CONST.DB_LOCATION + "BC1.json").read())
+    BC2 = json.loads(open(CONST.DB_LOCATION + "BC2.json").read())
+    db.add_record(BC1)
+    db.add_record(BC2)
 
 if __name__ == "__main__":
     main()

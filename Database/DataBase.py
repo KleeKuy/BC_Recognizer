@@ -1,89 +1,41 @@
-import threading
-from Database.Utils import Mode, USERS_DATABSE, FileIO
+from Database.Utils import FileIO, CONST
 
 
 class DataBase:
 
-    # TODO
     def __init__(self,
                  name):
-        self.name = name
-
-    # TODO
-    def add_record(self,
-                   record,
-                   user):
-        return
-
-    # TODO
-    def remove_record(self,
-                      name,
-                      user):
-        return
+        self._name = name
+        self._file = CONST.DB_LOCATION + name + ".json"
 
     # TODO
     def view_database(self,
                       name):
         return
 
-    @staticmethod
-    def update_user(user,
-                    user_db):
-        DataBase.remove_user(user_db)
-        DataBase.add_user(user)
+    def update_record(self,
+                      record):
+        self.remove_record(next(iter(record.keys())))
+        self.add_record(record)
         return
 
-    @staticmethod
-    def remove_user(user_db):
-        data = FileIO.read_json(USERS_DATABSE)
-        del data[user_db.name]
-        FileIO.write_json(USERS_DATABSE, data)
+    def remove_record(self,
+                      record):
+        data = FileIO.read_json(self._file)
+        del data[record]
+        FileIO.write_json(self._file, data)
         # TODO assert termination of connection, and that db instance is None, add database removal
         return
 
-    # TODO
-    def view_usr_data(self):
+    def add_record(self,
+                   record):
+        data = FileIO.read_json(self._file)
+        data.update(record)
+        FileIO.write_json(self._file, data)
         return
 
     # TODO
     @staticmethod
     def handle_error():
         print("database error")
-        return
-
-    @staticmethod
-    def verify_user(password,
-                    name):
-        data = FileIO.read_json(USERS_DATABSE)
-        try:
-            if data[name]["password"] == password:
-                return True
-        except KeyError:
-            print("unable to verify")
-            # DataBase.handle_error()
-            return False
-        return False
-
-    @staticmethod
-    def add_user(user):
-        data = FileIO.read_json(USERS_DATABSE)
-        data.update(user)
-        FileIO.write_json(USERS_DATABSE, data)
-        return
-
-    @staticmethod
-    def access_users(mode,
-                     user=None,
-                     password=None,
-                     user_db=None):
-        lock = threading.Lock()
-        with lock:
-            if mode == Mode.VERIFY_USER:
-                return DataBase.verify_user(password, user)
-            elif mode == Mode.ADD_USER:
-                DataBase.add_user(user)
-            elif mode == Mode.UPDATE_USER:
-                user_db.update_user(user, user_db)
-            elif mode == Mode.REMOVE_USER:
-                user_db.remove_user(user_db)
         return

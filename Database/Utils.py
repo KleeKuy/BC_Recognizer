@@ -1,8 +1,6 @@
 import json
 from enum import Enum
 
-USERS_DATABSE = "Database/users.json"
-
 
 # Users database access modes:
 class Mode(Enum):
@@ -10,6 +8,12 @@ class Mode(Enum):
     ADD_USER = 2
     UPDATE_USER = 3
     REMOVE_USER = 4
+
+
+class CONST:
+    USERS_DATABSE = "Database/Data/users.json"
+    DB_LOCATION = "Database/Data/"
+    PASSWORD = "password"
 
 
 class FileIO:
@@ -21,7 +25,9 @@ class FileIO:
                 return json.loads(js.read())
         except json.decoder.JSONDecodeError:
             print("Json file corrupted!")   #TODO proper error handling
-            return None
+        except FileNotFoundError:
+            return json.loads('{}')
+        return None
 
     @staticmethod
     def write_json(file,
