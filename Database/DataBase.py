@@ -15,17 +15,23 @@ class DataBase:
 
     def update_record(self,
                       record):
-        self.remove_record(next(iter(record.keys())))
-        self.add_record(record)
+        if self.remove_record(next(iter(record.keys()))):
+            self.add_record(record)
+        else:
+            print("No such record!")    #TODO
         return
 
     def remove_record(self,
                       record):
         data = FileIO.read_json(self._file)
-        del data[record]
+        try:
+            del data[record]
+        except KeyError:
+            print("No such record!")    # TODO
+            return False
         FileIO.write_json(self._file, data)
         # TODO assert termination of connection, and that db instance is None, add database removal
-        return
+        return True
 
     def add_record(self,
                    record):

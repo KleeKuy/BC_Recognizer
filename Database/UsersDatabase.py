@@ -1,16 +1,20 @@
 from Database.DataBase import DataBase
-import threading
+from threading import Lock
 from Database.Utils import Mode, CONST, FileIO
 
 
 class UsersDatabase(DataBase):
 
+    def __init__(self,
+                 name):
+        DataBase.__init__(self, name)
+        self._lock = Lock()
+
     def sync_access(self,
                     mode,
                     user,
                     password=None):
-        lock = threading.Lock()
-        with lock:
+        with self._lock:
             if mode == Mode.VERIFY_USER:
                 return self.verify_user(password, user)
             elif mode == Mode.ADD_USER:
@@ -29,7 +33,7 @@ class UsersDatabase(DataBase):
             if data[name][CONST.PASSWORD] == password:
                 return True
         except KeyError:
-            print("unable to verify")
+            print("unable to verify")   # TODO
             # self.handle_error()
             return False
         return False
