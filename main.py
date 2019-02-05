@@ -1,6 +1,7 @@
 from DataExtractor import DataExtractor
 from PostProcess import PostProcess
 from Database.DataBase_unittest import DatabaseTest
+from Connection.WebHandler_unittest import WebServetTest
 
 
 def begin():
@@ -16,13 +17,13 @@ def begin():
 
 def main():
 
-    unittest = DatabaseTest()
-    unittest.setUp()
-    unittest.test_verify()
-    unittest.test_add()
-    unittest.test_remove()
-    unittest.test_update()
-    unittest.test_thread_safety()
+    unittestdb = DatabaseTest()
+    unittestdb.setUp()
+    unittestdb.test_add()
+    #unittestdb.run_all()
+    unittestweb = WebServetTest()
+    unittestweb.test()
+
 
 if __name__ == "__main__":
     main()

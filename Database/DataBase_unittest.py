@@ -99,6 +99,13 @@ class DatabaseTest(unittest.TestCase):
         except FileNotFoundError:
             return
 
+    def run_all(self):
+        self.test_verify()
+        self.test_add()
+        self.test_remove()
+        self.test_update()
+        self.test_thread_safety()
+
 
 if __name__ == '__main__':
     unittest.main()
