@@ -17,9 +17,9 @@ def begin():
 
 def main():
 
-    unittestdb = DatabaseTest()
-    unittestdb.setUp()
-    unittestdb.test_add()
+    #unittestdb = DatabaseTest()
+    #unittestdb.setUp()
+    #unittestdb.test_add()
     #unittestdb.run_all()
     unittestweb = WebServetTest()
     unittestweb.test()

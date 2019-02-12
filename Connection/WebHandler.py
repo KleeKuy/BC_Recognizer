@@ -1,17 +1,50 @@
-from http.server import BaseHTTPRequestHandler
+import socket
+from time import sleep
+import logging
 
 
-class WebHandler(BaseHTTPRequestHandler):
+class WebHandler:
 
-    def do_GET(self):   #TODO
-        # print(self.path)
-        if self.path == "/user":
-            self.send_response(200)
-            self.send_header('User verification', ".json")
-            self.end_headers()
-            with open("Database/Data/test.json") as user:
-                msg = user.read()
-                data = msg.encode('utf-8')  #TODO send actual user data (name, email)
-                self.wfile.write(data)      #TODO Needed new method in db that will return user data without password
-        if self.path == "/data":
-            print("send database")
+    def __init__(self,
+                 port,
+                 ip,
+                 handlers=None):
+        self._conn = None
+        self._addr = None
+        self._ip = ip
+        self._port = port
+        self._handlers = handlers
+
+    def listen(self):
+        BUFFER_SIZE = 1024
+        s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+        s.bind((self._ip, self._port))
+        s.listen(1)
+        s.setblocking(0)
+        while True:
+            try:
+                self._conn, self._addr = s.accept()
+            except BlockingIOError:
+                sleep(1)
+                print("blockingioerror")
+                continue
+            break
+
+        logging.info('Connection address:', self._addr) #TODO add logging? logging to file?
+
+        cmd = self._conn.recv(3)
+        cmddec = cmd.decode('utf-8')
+        print(cmddec)
+        data = self._conn.recv(BUFFER_SIZE)
+
+        while True:
+            try:
+                rec = self._conn.recv(BUFFER_SIZE)  # are we 100% certain that this works in every condition?
+            except BlockingIOError:
+                break
+            data += rec
+
+        datadec = data.decode('utf-8')
+        response = self._handlers[cmddec](datadec).encode('utf-8')
+        self._conn.send(response)
+        self._conn.close()
