@@ -3,6 +3,7 @@ from threading import Thread
 from Connection.WebHandler import WebHandler
 import socket
 import base64
+from time import sleep
 BUFFER_SIZE = 1024
 
 
@@ -16,38 +17,42 @@ class WebServetTest(unittest.TestCase):
             'STR': lambda data: self.str_handle(data)
         }
         self.web = WebHandler(ip=self.TCP_IP, port=self.TCP_PORT, handlers=self.handlers)
+        self.res = None
 
-    def start_test(self):
-        thread = Thread(target=self.web.listen)
-        thread.start()
+    def send(self,
+             data,
+             cmd):
         s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+        sleep(1)
         s.connect((self.TCP_IP, self.TCP_PORT))
-        return s
+        s.send(cmd)
+        s.send(data)
+        rec = s.recv(BUFFER_SIZE)
+        msg = rec.decode('utf-8')
+        s.send('END'.encode('utf-8'))
+        s.close()
+        self.res = msg
 
     def test_img(self):
-        s = self.start_test()
         cmdenc = 'IMG'.encode('utf-8')
         with open("SampleImages/w4.jpg", 'rb') as img:
             image = base64.b64encode(img.read())
-        s.send(cmdenc)
-        s.send(image)
-        rec = s.recv(BUFFER_SIZE)
-        msg = rec.decode('utf-8')
-        self.assertEqual(msg, "text retrieved from image", "Image send test failed")
-        s.send('END'.encode('utf-8'))
-        s.close()
+            thread = Thread(target=self.send, args=(image, cmdenc))
+            thread.start()
+        self.web.setup_connection()
+        self.web.listen()
+        thread.join()
+        self.assertEqual(self.res, "text retrieved from image", "Image send test failed")
 
     def test_str(self):
-        s = self.start_test()
         cmdenc = 'STR'.encode('utf-8')
         data = "Test message!"
-        s.send(cmdenc)
-        s.send(data.encode('utf-8'))
-        rec = s.recv(BUFFER_SIZE)
-        msg = rec.decode('utf-8')
-        self.assertEqual(msg, "Test message!", "Text send test failed")
-        s.send('END'.encode('utf-8'))
-        s.close()
+        thread = Thread(target=self.send, args=(data.encode('utf-8'), cmdenc))
+        thread.start()
+        self.web.setup_connection()
+        self.web.listen()
+        thread.join()
+        self.assertEqual(self.res, data, "Image send test failed")
 
     def img_handle(self,
                    data):
@@ -58,8 +63,9 @@ class WebServetTest(unittest.TestCase):
 
     def str_handle(self,
                    data):
-        return data.encode('utf-8')
+        return data
 
     def run_all(self):
         self.setUp()
         self.test_img()
+        self.test_str()

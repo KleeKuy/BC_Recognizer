@@ -19,7 +19,7 @@ class WebHandler:
     def setup_connection(self):
         s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
         s.bind((self._ip, self._port))
-        s.settimeout(0)
+        s.setblocking(0)
         s.listen(1)
         while True:
             try:
@@ -53,7 +53,6 @@ class WebHandler:
         return data.decode('utf-8')
 
     def listen(self):
-        self.setup_connection()
         while True:
             cmd = self.receive_command()
             if cmd == "END":
