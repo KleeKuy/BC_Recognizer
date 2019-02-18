@@ -16,15 +16,19 @@ class WebServetTest(unittest.TestCase):
             'IMG': lambda data: self.img_handle(data),
             'STR': lambda data: self.str_handle(data)
         }
-        self.web = WebHandler(ip=self.TCP_IP, port=self.TCP_PORT, handlers=self.handlers)
+        self.web = WebHandler(handlers=self.handlers)
         self.res = None
+        t = Thread(target=self.server_simulator, daemon=True)
+        t.start()
 
     def send(self,
              data,
              cmd):
+        port = self.get_port()
+        print("rec port " + str(port))
         s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
         sleep(1)
-        s.connect((self.TCP_IP, self.TCP_PORT))
+        s.connect((self.TCP_IP, port))
         s.send(cmd)
         s.send(data)
         rec = s.recv(BUFFER_SIZE)
@@ -33,14 +37,20 @@ class WebServetTest(unittest.TestCase):
         s.close()
         self.res = msg
 
+    def get_port(self):
+        s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+        s.connect((self.TCP_IP, self.TCP_PORT))
+        rec = s.recv(BUFFER_SIZE)
+        s.close()
+        port = int.from_bytes(rec, byteorder='big')
+        return port
+
     def test_img(self):
         cmdenc = 'IMG'.encode('utf-8')
         with open("SampleImages/w4.jpg", 'rb') as img:
             image = base64.b64encode(img.read())
             thread = Thread(target=self.send, args=(image, cmdenc))
             thread.start()
-        self.web.setup_connection()
-        self.web.listen()
         thread.join()
         self.assertEqual(self.res, "text retrieved from image", "Image send test failed")
 
@@ -49,10 +59,27 @@ class WebServetTest(unittest.TestCase):
         data = "Test message!"
         thread = Thread(target=self.send, args=(data.encode('utf-8'), cmdenc))
         thread.start()
-        self.web.setup_connection()
-        self.web.listen()
         thread.join()
         self.assertEqual(self.res, data, "Image send test failed")
+
+    def test_many_connections(self):
+        i = 0
+       # while i < 5:
+        t1 = Thread(target=self.test_img)
+        t2 = Thread(target=self.test_img)
+        t1.start()
+        sleep(1)
+        print("test 2 ")
+        t2.start()
+        #sleep(0.2)
+        i += 1
+
+    def server_simulator(self):
+        while True:
+            print("server thread!")
+            sock, conn = self.web.setup_connection(self.TCP_PORT)
+            thread = Thread(target=self.web.listen, args=(conn, sock))
+            thread.start()
 
     def img_handle(self,
                    data):
@@ -69,3 +96,4 @@ class WebServetTest(unittest.TestCase):
         self.setUp()
         self.test_img()
         self.test_str()
+        #self.test_many_connections()

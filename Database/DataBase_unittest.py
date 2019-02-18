@@ -16,6 +16,7 @@ class DatabaseTest(unittest.TestCase):
         self.remove_user = lambda user: users_db.sync_access(mode=Mode.REMOVE_USER, user=user)
         self.new_user = json.loads(open("Database/Data/new user.json").read())
         self.new_user2 = json.loads(open("Database/Data/new user2.json").read())
+        self.new_user3 = json.loads(open("Database/Data/new user3.json").read())
         self.updated = json.loads(open("Database/Data/updated user.json").read())
         self.test_loc = "Database/Data/test.json"
 
@@ -42,6 +43,13 @@ class DatabaseTest(unittest.TestCase):
         self.add_user(user=self.new_user)
         self.assertEqual(True, self.verify_user("Wonsz", "rzeczny"), "4 Add to empty db test failed!")
 
+        self.assert_no_db()
+        res1 = self.add_user(user=self.new_user)
+        res2 = self.add_user(user=self.new_user3)
+        self.assertEqual(True, self.verify_user("Wonsz", "rzeczny"), "5 Add override test failed!")
+        self.assertEqual(True, res1, "6 Add incorect return value!")
+        self.assertEqual(False, res2, "7 Add incorect return value!!")
+
     def test_remove(self):
         self.assert_no_db()
         self.add_user(user=self.new_user)
@@ -60,12 +68,14 @@ class DatabaseTest(unittest.TestCase):
 
     def test_update(self):
         self.assert_no_db()
-        self.update_user(user=self.updated)
+        res1 = self.update_user(user=self.updated)
         self.assertEqual(False, self.verify_user("Wonsz", "rzecznyV2"), "1 Update none test failed!")
+        self.assertEqual(False, res1, "4 Update incorect return value!!")
 
         self.add_user(user=self.new_user)
-        self.update_user(user=self.updated)
+        res2 = self.update_user(user=self.updated)
         self.assertEqual(True, self.verify_user("Wonsz", "rzecznyV2"), "2 Update only test failed!")
+        self.assertEqual(True, res2, "3 Update incorect return value!")
 
     def test_thread_safety(self):
         thread = Thread(target=self.async_fun)
@@ -100,6 +110,7 @@ class DatabaseTest(unittest.TestCase):
             return
 
     def run_all(self):
+        self.setUp()
         self.test_verify()
         self.test_add()
         self.test_remove()

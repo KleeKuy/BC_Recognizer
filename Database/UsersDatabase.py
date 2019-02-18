@@ -18,9 +18,9 @@ class UsersDatabase(DataBase):
             if mode == Mode.VERIFY_USER:
                 return self.verify_user(password, user)
             elif mode == Mode.ADD_USER:
-                self.add_record(user)
+                return self.add_record(user)
             elif mode == Mode.UPDATE_USER:
-                self.update_record(user)
+                return self.update_record(user)
             elif mode == Mode.REMOVE_USER:
                 self.remove_record(user)
         return

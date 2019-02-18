@@ -15,11 +15,16 @@ class DataBase:
 
     def update_record(self,
                       record):
-        if self.remove_record(next(iter(record.keys()))):
-            self.add_record(record)
-        else:
-            print("No such record!")    #TODO
-        return
+        name = (next(iter(record.keys())))
+        data = FileIO.read_json(self._file)
+        try:
+            if data[name] is not None:
+                data.update(record)
+                FileIO.write_json(self._file, data)
+                return True
+        except KeyError:
+            print("No such record!")    # TODO
+            return False
 
     def remove_record(self,
                       record):
@@ -36,9 +41,15 @@ class DataBase:
     def add_record(self,
                    record):
         data = FileIO.read_json(self._file)
-        data.update(record)
-        FileIO.write_json(self._file, data)
-        return
+        name = (next(iter(record.keys())))
+        try:
+            if data[name] is not None:
+                print("record already exists!")
+                return False
+        except KeyError:
+            data.update(record)
+            FileIO.write_json(self._file, data)
+            return True
 
     # TODO
     @staticmethod
