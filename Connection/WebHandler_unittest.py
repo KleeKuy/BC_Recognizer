@@ -11,8 +11,9 @@ class WebServetTest(unittest.TestCase):
         self.TCP_IP = '127.0.0.1'
         self.TCP_PORT = 50000
         self.handlers = {
-            'IMG': lambda data: self.img_handle(data),
-            'STR': lambda data: self.str_handle(data)
+            'IMG': lambda data, ip: self.img_handle(data),
+            'STR': lambda data, ip: self.str_handle(data),
+            'END': lambda ip: 5
         }
         self.web = WebHandler(handlers=self.handlers)
         self.res = None
@@ -46,7 +47,7 @@ class WebServetTest(unittest.TestCase):
                  data="Test message!"):
         cmdenc = 'STR'.encode('utf-8')
         self.send(data.encode('utf-8'), cmdenc)
-        self.assertEqual(self.res, data, "Image send test failed")
+        self.assertEqual(self.res, data, "String send test failed")
 
     def test_many_connections(self):
         i = 0

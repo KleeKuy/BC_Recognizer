@@ -13,7 +13,7 @@ class Mode(Enum):
 class CONST:
     USERS_DATABSE = "Database/Data/users.json"
     DB_LOCATION = "Database/Data/"
-    PASSWORD = "password"
+    PASSWORD = "PASSWORD"
 
 
 class FileIO:

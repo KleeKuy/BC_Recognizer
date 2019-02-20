@@ -14,6 +14,7 @@ class WebHandler:
         self.outputs = []
         self.message_queues = {}
         self.handlers = handlers
+        self.db = {}
 
     def run(self):
         print('run start')
@@ -25,7 +26,8 @@ class WebHandler:
             for s in writable:
                 self.write(s)
             for s in exceptional:
-                self.clear(s)
+                ip, port = s.getsockname()
+                self.clear(s, ip)
 
     def write(self,
               s):
@@ -43,15 +45,17 @@ class WebHandler:
         if s is self.server:
             self.accept(s)
         else:
+            ip, port = s.getsockname()
+            print("ip in hndler is " + ip)
             cmd = s.recv(3)
             if cmd:
                 cmddec = cmd.decode('utf-8')
                 if cmddec == 'END':
-                    self.clear(s)
+                    self.clear(s, ip)
                     return
                 print(cmddec)
                 data = self.receive(s)
-                self.message_queues[s].put(self.handlers[cmddec](data))
+                self.message_queues[s].put(self.handlers[cmddec](data, ip))
                 if s not in self.outputs:
                     self.outputs.append(s)
             else:
@@ -65,12 +69,14 @@ class WebHandler:
         self.message_queues[connection] = queue.Queue()
 
     def clear(self,
-              s):
+              s,
+              ip):
         self.inputs.remove(s)
         if s in self.outputs:
             self.outputs.remove(s)
         s.close()
         del self.message_queues[s]
+        self.handlers['END'](ip)
 
     def receive(self,
                 s):

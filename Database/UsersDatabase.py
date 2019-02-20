@@ -6,7 +6,7 @@ from Database.Utils import Mode, CONST, FileIO
 class UsersDatabase(DataBase):
 
     def __init__(self,
-                 name):
+                 name="users"):
         DataBase.__init__(self, name)
         self._lock = Lock()
 
