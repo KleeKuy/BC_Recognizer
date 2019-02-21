@@ -1,0 +1,97 @@
+<?xml version="1.0" encoding="utf-8"?>
+<android.support.constraint.ConstraintLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:visibility="visible"
+    app:layout_behavior="@string/appbar_scrolling_view_behavior"
+    tools:context="com.example.michal.client.RegisterActivity"
+    tools:showIn="@layout/activity_register">
+
+    <TextView
+        android:id="@+id/RegisterView"
+        android:layout_width="192dp"
+        android:layout_height="78dp"
+        android:layout_marginTop="64dp"
+        android:text="@string/RegisterInfo"
+        android:textAppearance="@style/TextAppearance.AppCompat.Display1"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintHorizontal_bias="0.5"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toTopOf="parent" />
+
+    <Button
+        android:id="@+id/ConfirmButton"
+        android:layout_width="wrap_content"
+        android:layout_height="48dp"
+        android:layout_marginTop="47dp"
+        android:text="@string/Confirm"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintHorizontal_bias="0.498"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@+id/EmailEdir" />
+
+    <EditText
+        android:id="@+id/RegisterUsernameEdit"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="42dp"
+        android:autofillHints="@string/UsernameHint"
+        android:ems="10"
+        android:hint="@string/UsernameHint"
+        android:inputType="textPersonName"
+        android:text="@string/UsernameHint"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@+id/RegisterView"
+        tools:targetApi="o" />
+
+    <EditText
+        android:id="@+id/PasswordConfirmEdit"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="40dp"
+        android:autofillHints="@string/PasswordHint"
+        android:ems="10"
+        android:hint="@string/PasswordHint"
+        android:inputType="textPassword"
+        android:singleLine="true"
+        android:text="@string/PasswordHint"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@+id/RegisterUsernameEdit"
+        tools:targetApi="o" />
+
+    <EditText
+        android:id="@+id/RegisterPasswordEdit"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="40dp"
+        android:autofillHints=""
+        android:ems="10"
+        android:hint="@string/PasswordHint"
+        android:inputType="textPassword"
+        android:text="@string/PasswordHint"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintHorizontal_bias="0.5"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@+id/PasswordConfirmEdit"
+        tools:targetApi="o" />
+
+    <EditText
+        android:id="@+id/EmailEdir"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="40dp"
+        android:ems="10"
+        android:hint="@string/EmailEdit"
+        android:inputType="textEmailAddress"
+        android:text="@string/EmailEdit"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintHorizontal_bias="0.5"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@+id/RegisterPasswordEdit"
+        android:importantForAutofill="no" tools:targetApi="o"/>
+
+</android.support.constraint.ConstraintLayout>

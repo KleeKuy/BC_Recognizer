@@ -1,0 +1,15 @@
+<resources>
+    <string name="app_name">Client</string>
+    <string name="action_settings">Settings</string>
+    <string name="RegisterButton">Zarejestruj się</string>
+    <string name="RegisterText">Nie masz jeszcze konta?</string>
+    <string name="PasswordHint">Hasło</string>
+    <string name="UsernameHint">Nazwa użytkownika</string>
+    <string name="LoginButton">Logowanie</string>
+    <string name="RepeatPassword">Powtórz hasło</string>
+    <string name="MailHint">Adrese email</string>
+    <string name="RegisterInfo">Rejestracja</string>
+    <string name="Confirm">Potwierdź</string>
+    <string name="EmailEdit">Podaj adres email</string>
+    <string name="PasswordNoMatch">Hasła nie są jednakowe!</string>
+</resources>
