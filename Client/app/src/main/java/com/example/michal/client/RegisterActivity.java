@@ -1,5 +1,6 @@
 package com.example.michal.client;
 
+import android.content.Intent;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
 import android.view.Gravity;
@@ -16,6 +17,7 @@ public class RegisterActivity extends AppCompatActivity {
     EditText usernameEdit;
     EditText passEdit;
     EditText passEditConfirm;
+    EditText mailEdit;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -25,18 +27,46 @@ public class RegisterActivity extends AppCompatActivity {
         usernameEdit = findViewById(R.id.RegisterUsernameEdit);
         passEdit = findViewById(R.id.RegisterPasswordEdit);
         passEditConfirm = findViewById(R.id.PasswordConfirmEdit);
+        mailEdit = findViewById(R.id.EmailEdir);
+
     }
 
     public void RegisterRequest(View view){
-         String username = usernameEdit.getText().toString();
-         String password = passEdit.getText().toString();
+         final String username = usernameEdit.getText().toString();
+         final String password = passEdit.getText().toString();
          String passwordConfirm = passEditConfirm.getText().toString();
 
-         if (password.equals(passwordConfirm))
+         if (!password.equals(passwordConfirm))
         {
             this.show_popup(view);
             return;
         }
+
+        final Connection conn = new Connection();
+        Thread t1 = new Thread(){
+            public void run(){
+                String ret = conn.setupConnection(username, password);
+            }
+        };
+        t1.start();
+        try {
+            t1.join();
+        } catch (InterruptedException e){
+            //todo
+            String a = "interrupted exception";
+            usernameEdit.setText(a);
+        }
+        //String s1 = conn.setupConnection(username, password);
+        usernameEdit.setText("done xd?");
+
+        //String res = conn.register(username, password);
+        //mailEdit.setText(res);
+
+        Intent intent = new Intent(this, LoggedActivity.class);
+        // EditText editText = (EditText) findViewById(R.id.editText);
+        // String message = editText.getText().toString();
+        // intent.putExtra(EXTRA_MESSAGE, message);
+        startActivity(intent);
 
     }
 

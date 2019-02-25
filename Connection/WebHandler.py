@@ -1,6 +1,6 @@
 import select, socket, queue
 BUFFER_SIZE = 1024
-
+from time import sleep
 
 class WebHandler:
 
@@ -8,7 +8,7 @@ class WebHandler:
                  handlers):
         self.server = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
         self.server.setblocking(0)
-        self.server.bind(('', 50000))
+        self.server.bind(('', 5000))
         self.server.listen(15)
         self.inputs = [self.server]
         self.outputs = []
@@ -53,13 +53,13 @@ class WebHandler:
                 if cmddec == 'END':
                     self.clear(s, ip)
                     return
-                print(cmddec)
+                print("received command is " + cmddec)
                 data = self.receive(s)
                 self.message_queues[s].put(self.handlers[cmddec](data, ip))
                 if s not in self.outputs:
                     self.outputs.append(s)
             else:
-                self.clear(s)
+                self.clear(s, ip)
 
     def accept(self,
                s):
@@ -80,14 +80,22 @@ class WebHandler:
 
     def receive(self,
                 s):
-        data = s.recv(BUFFER_SIZE)
+        tst = False
+        data = b''
         while True:
             try:
                 rec = s.recv(BUFFER_SIZE)  # are we 100% certain that this works in every condition?
-                if rec is None:
-                    print(rec)
-                    break
+       #         if rec is None and data is not None:
+                print("received " + rec.decode('utf-8'))
+       #             break
             except BlockingIOError:
-                break
+                if tst is True:
+                    break
+                else:
+                    tst = False
+                print("sleepin")
+                sleep(1)
+                tst = True
+                continue
             data += rec
         return data
