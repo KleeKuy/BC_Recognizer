@@ -1,6 +1,9 @@
 import select, socket, queue
-BUFFER_SIZE = 1024
 from time import sleep
+from Connection.CmdType import CmdType
+import struct
+BUFFER_SIZE = 1024
+
 
 class WebHandler:
 
@@ -47,15 +50,26 @@ class WebHandler:
         else:
             ip, port = s.getsockname()
             print("ip in hndler is " + ip)
-            cmd = s.recv(3)
+            try:
+                cmd = s.recv(3)
+            except ConnectionResetError:
+                print("klient niespodziwanie zakonczyl polaczenie!")
+                self.clear(s, ip)
+                return
             if cmd:
+                #cmddec = int(cmd)#int.from_bytes(cmd, byteorder='little')#.decode('utf-8')
                 cmddec = cmd.decode('utf-8')
-                if cmddec == 'END':
+                print("received command is " + str(cmddec))
+                if cmddec == CmdType.END.value:
                     self.clear(s, ip)
                     return
-                print("received command is " + cmddec)
                 data = self.receive(s)
-                self.message_queues[s].put(self.handlers[cmddec](data, ip))
+                try:
+                    self.message_queues[s].put(self.handlers[cmddec](data, ip))
+                except KeyError:
+                    self.clear(s, ip)
+                    print("Cos ty mie przyslal???? " + str(cmddec))
+                    return
                 if s not in self.outputs:
                     self.outputs.append(s)
             else:
@@ -71,12 +85,13 @@ class WebHandler:
     def clear(self,
               s,
               ip):
+        print("clear")
         self.inputs.remove(s)
         if s in self.outputs:
             self.outputs.remove(s)
         s.close()
         del self.message_queues[s]
-        self.handlers['END'](ip)
+        self.handlers[CmdType.END.value](ip)
 
     def receive(self,
                 s):
@@ -86,7 +101,7 @@ class WebHandler:
             try:
                 rec = s.recv(BUFFER_SIZE)  # are we 100% certain that this works in every condition?
        #         if rec is None and data is not None:
-                print("received " + rec.decode('utf-8'))
+            #    print("received " + rec.decode('utf-8'))
        #             break
             except BlockingIOError:
                 if tst is True:
@@ -94,7 +109,7 @@ class WebHandler:
                 else:
                     tst = False
                 print("sleepin")
-                sleep(1)
+                sleep(1)    #todo somehow set socket timeout instead of this
                 tst = True
                 continue
             data += rec

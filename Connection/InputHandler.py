@@ -1,5 +1,6 @@
 from Database.DataBase import DataBase
 from Database.UsersDatabase import UsersDatabase
+from Connection.CmdType import CmdType
 
 
 class InputHandler:
@@ -8,10 +9,10 @@ class InputHandler:
         self.user_db = UsersDatabase(db)
         self.db = {}
         self.handlers = {
-            'ADU': lambda data, ip: self.add_user(data),
-            'VER': lambda data, ip: self.verify_user(data, ip),
-            'END': lambda ip: self.end_connection(ip=ip),
-            'IMG': lambda data, ip: self.rec_data(data, ip)
+            CmdType.REGISTER.value: lambda data, ip: self.add_user(data),
+            CmdType.VERIFY.value: lambda data, ip: self.verify_user(data, ip),
+            CmdType.END.value: lambda ip: self.end_connection(ip=ip),
+            CmdType.ADD_RECORD.value: lambda data, ip: self.rec_data(data, ip)
         }
 
     def add_user(self,
@@ -19,8 +20,10 @@ class InputHandler:
         user_data, name = self.parse_user_data(data)
         if name is None:
             return 'F'
-        self.user_db.add_record(user_data)
-        return 'T'
+        if self.user_db.add_record(user_data):
+            return 'T'
+        else:
+            return 'F'
 
     def verify_user(self,
                     data,
@@ -52,6 +55,7 @@ class InputHandler:
     def parse_user_data(self,
                         data):
         user_data = data.decode('utf-8')
+        print(user_data)
         values = (user_data.split('/'))
         pair = []
         dct = {}

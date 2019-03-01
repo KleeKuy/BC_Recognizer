@@ -10,8 +10,9 @@ import android.view.View;
 import android.widget.EditText;
 import android.widget.LinearLayout;
 import android.widget.PopupWindow;
+import android.widget.TextView;
 
-public class RegisterActivity extends AppCompatActivity {
+public class RegisterActivity extends AppCompatActivity implements Runnable {
 
     PopupWindow popUp;
     EditText usernameEdit;
@@ -38,39 +39,40 @@ public class RegisterActivity extends AppCompatActivity {
 
          if (!password.equals(passwordConfirm))
         {
-            this.show_popup(view);
+            this.show_popup(view,"Passwords do not match!");
             return;
         }
 
-        final Connection conn = new Connection();
-        Thread t1 = new Thread(){
-            public void run(){
-                String ret = conn.setupConnection(username, password);
-            }
-        };
-        t1.start();
+        RegisterActivity t1 = this; //waiting thread
+        (new Thread(t1)).start();
+        register(username, password);
         try {
-            t1.join();
-        } catch (InterruptedException e){
-            //todo
-            String a = "interrupted exception";
-            usernameEdit.setText(a);
+            Thread.sleep(1500);     //TODO delet this sleep later (or sooner if needed)
+        } catch (InterruptedException e) {
+            // TODO Auto-generated catch block
+            e.printStackTrace();
         }
-        //String s1 = conn.setupConnection(username, password);
-        usernameEdit.setText("done xd?");
+        //login("Magnus", "DidNothingWrong"); TODO we can login
+
+       // Connection.getInstance().accessOutput(Message.endMessage(), false);
+
+      //  usernameEdit.setText("Failed to register");
 
         //String res = conn.register(username, password);
         //mailEdit.setText(res);
 
-        Intent intent = new Intent(this, LoggedActivity.class);
-        // EditText editText = (EditText) findViewById(R.id.editText);
-        // String message = editText.getText().toString();
-        // intent.putExtra(EXTRA_MESSAGE, message);
-        startActivity(intent);
-
     }
 
-    private void show_popup(View view)
+    public void register(String username,
+                         String password)
+    {
+        Message msg = new Message(CmdType.REGISTER,username, password);
+        Connection.getInstance().accessOutput(msg, false);
+        System.out.println("register now");
+    }
+
+    private void show_popup(View view,
+                            String text)
     {
         LayoutInflater inflater = (LayoutInflater)
                 getSystemService(LAYOUT_INFLATER_SERVICE);
@@ -86,6 +88,9 @@ public class RegisterActivity extends AppCompatActivity {
         // which view you pass in doesn't matter, it is only used for the window tolken
         popupWindow.showAtLocation(view, Gravity.CENTER, 0, 0);
 
+        TextView txt = findViewById(R.id.PopupPass);
+        txt.setText(text);
+
         // dismiss the popup window when touched
         popupView.setOnTouchListener(new View.OnTouchListener() {
             @Override
@@ -94,5 +99,33 @@ public class RegisterActivity extends AppCompatActivity {
                 return true;
             }
         });
+    }
+
+    public void run() {
+        Connection conn = Connection.getInstance();
+        while(true)
+        {
+            try {
+                Thread.sleep(500);
+            } catch (InterruptedException e) {
+                // TODO Auto-generated catch block
+                e.printStackTrace();
+            }
+            String inp = conn.accessIntput(null, true);
+            if (inp != null)
+            {
+                System.out.println(inp);
+          /*      if (inp.contains("T"));
+                    this.show_popup(getWindow().getDecorView().findViewById(android.R.id.content)
+                            ,"Passwords do not match!");
+                if (inp.contains("F"));
+                    this.show_popup(getWindow().getDecorView().findViewById(android.R.id.content)
+                            ,"Passwords do not match!");*/
+
+                conn.accessIntput(null, false);
+                break;
+            }
+        }
+
     }
 }
