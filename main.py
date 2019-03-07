@@ -7,6 +7,7 @@ from Connection.InputHandler_unittest import InputTest
 from threading import Thread
 from time import sleep
 import socket
+from Connection.HttpHandler_unittest import WebServetHttpTest
 
 
 def begin():
@@ -21,16 +22,24 @@ def begin():
 
 
 def main():
-   # unittests()
+    #unittests()
 
-    app_test()
+    #app_test()
+    #http_test = WebServetHttpTest()
+    #http_test.test()
+    httptets = WebServetHttpTest()
+    httptets.test()
+
+
+def init_conn():
+    sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
 
 
 def unittests():
    # unittestdb = DatabaseTest()
    # unittestdb.run_all()
-   # unittestweb = WebServetTest()
-   # unittestweb.run_all()
+    unittestweb = WebServetTest()
+    unittestweb.run_all()
     unittestinpt = InputTest()
     unittestinpt.run_all()
 
@@ -38,8 +47,8 @@ def unittests():
 def app_test():
     inpt = InputHandler()
     web = WebHandler(inpt.get_handlers())
-    client = Thread(target=send)
-    client.start()
+    #client = Thread(target=send)
+    #client.start()
     web.run()
 
 

@@ -6,14 +6,30 @@ import android.support.design.widget.FloatingActionButton;
 import android.support.design.widget.Snackbar;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.Toolbar;
+import android.util.Base64;
 import android.view.View;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.widget.EditText;
 
+import com.android.volley.AuthFailureError;
+import com.android.volley.NetworkResponse;
+import com.android.volley.Request;
+import com.android.volley.RequestQueue;
+import com.android.volley.Response;
+import com.android.volley.VolleyError;
+import com.android.volley.toolbox.JsonObjectRequest;
+import com.android.volley.toolbox.StringRequest;
+import com.android.volley.toolbox.Volley;
+
+import org.json.JSONObject;
+
+import java.util.HashMap;
+import java.util.Map;
+
 import static android.provider.AlarmClock.EXTRA_MESSAGE;
 
-public class MainActivity extends AppCompatActivity implements Runnable { //todo redundand code
+public class MainActivity extends AppCompatActivity { //todo redundand code
 
     private EditText loginEdit;
     private EditText passwordEdit;
@@ -70,46 +86,82 @@ public class MainActivity extends AppCompatActivity implements Runnable { //todo
 
     public void loginButton(View view)
     {
-        MainActivity t1 = this; //waiting thread
-        (new Thread(t1)).start();
+       // MainActivity t1 = this; //waiting thread
+       // (new Thread(t1)).start();
         final String username = loginEdit.getText().toString();
         final String password = passwordEdit.getText().toString();
+        login(username,password);
 
-        login(username, password);
     }
 
-    public void login(String username,
-                      String password)
+    private void login(final String username,
+                       final String password)
     {
-        Message msg = new Message(CmdType.VERIFY,username, password);
-        Connection.getInstance().accessOutput(msg, false);
-        System.out.println("login now ");
+        //todo this is register more like
+        String url = "http://10.0.2.2:8000/verify";
+
+        JsonObjectRequest postRequest = new JsonObjectRequest(Request.Method.POST, url, null,
+                new Response.Listener<JSONObject>()
+                {
+                    @Override
+                    public void onResponse(JSONObject response) {
+                        // response
+                    }
+                },
+                new Response.ErrorListener()
+                {
+                    @Override
+                    public void onErrorResponse(VolleyError error) {
+                        // error
+                    }
+                }
+        ) {
+            @Override
+            public Map<String, String> getHeaders() throws AuthFailureError
+            {
+                HashMap<String, String> params = new HashMap<String, String>();
+                String creds = String.format("%s:%s",username,password);
+                params.put("Authorization", creds);
+                return params;
+        }
+            @Override
+            protected Response<JSONObject> parseNetworkResponse(NetworkResponse response)
+            {
+                int mStatusCode = response.statusCode;
+                System.out.println("response is " + mStatusCode);
+                return super.parseNetworkResponse(response);
+            }
+        };
+
+        Connection.getInstance(this).addToRequestQueue(postRequest);
+
+
     }
 
-    public void run() {
-        Connection conn = Connection.getInstance();
-        while(true)
-        {
-            try {
-                Thread.sleep(500);
-            } catch (InterruptedException e) {
-                // TODO Auto-generated catch block
-                e.printStackTrace();
-            }
-            String inp = conn.accessIntput(null, true);
-            if (inp != null)
-            {
-                System.out.println(inp);
-                if (inp.contains("T")) {
-                    Intent intent = new Intent(this, LoggedActivity.class);
-                    startActivity(intent);
-                }
-                if (inp.contains("F"))
-                    loginEdit.setText("Niewłaściwe dane logowania"); //todo it breaks app
-                conn.accessIntput(null, false);
-                break;
-            }
-        }
+    public void get(String username,
+                    String password)
+    {
+        // login(username, password);
 
+// Instantiate the RequestQueue.
+        String url ="http://10.0.2.2:8000/user";
+
+// Request a string response from the provided URL.
+        StringRequest stringRequest = new StringRequest(Request.Method.GET, url,
+                new Response.Listener<String>() {
+                    @Override
+                    public void onResponse(String response) {
+                        // Display the first 500 characters of the response string.
+                        loginEdit.setText("Response is: "+ response);
+                    }
+                }, new Response.ErrorListener() {
+            @Override
+            public void onErrorResponse(VolleyError error) {
+                loginEdit.setText("That didn't work!");
+            }
+        });
+
+// Add the request to the RequestQueue.
+        Connection.getInstance(this).addToRequestQueue(stringRequest);
     }
 }

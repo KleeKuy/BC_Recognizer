@@ -1,6 +1,7 @@
 package com.example.michal.client;
 
 import android.content.Intent;
+import android.os.Looper;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
 import android.view.Gravity;
@@ -12,7 +13,17 @@ import android.widget.LinearLayout;
 import android.widget.PopupWindow;
 import android.widget.TextView;
 
-public class RegisterActivity extends AppCompatActivity implements Runnable {
+import com.android.volley.NetworkResponse;
+import com.android.volley.Request;
+import com.android.volley.Response;
+import com.android.volley.VolleyError;
+import com.android.volley.toolbox.JsonObjectRequest;
+
+import org.json.JSONObject;
+
+import java.util.HashMap;
+
+public class RegisterActivity extends AppCompatActivity{
 
     PopupWindow popUp;
     EditText usernameEdit;
@@ -35,40 +46,78 @@ public class RegisterActivity extends AppCompatActivity implements Runnable {
     public void RegisterRequest(View view){
          final String username = usernameEdit.getText().toString();
          final String password = passEdit.getText().toString();
+         final String mail = mailEdit.getText().toString();
          String passwordConfirm = passEditConfirm.getText().toString();
 
          if (!password.equals(passwordConfirm))
         {
-            this.show_popup(view,"Passwords do not match!");
+            this.show_popup(view, "Hasła nie są identyczne!");
             return;
         }
-
-        RegisterActivity t1 = this; //waiting thread
-        (new Thread(t1)).start();
-        register(username, password);
-        try {
-            Thread.sleep(1500);     //TODO delet this sleep later (or sooner if needed)
-        } catch (InterruptedException e) {
-            // TODO Auto-generated catch block
-            e.printStackTrace();
-        }
-        //login("Magnus", "DidNothingWrong"); TODO we can login
-
-       // Connection.getInstance().accessOutput(Message.endMessage(), false);
-
-      //  usernameEdit.setText("Failed to register");
-
-        //String res = conn.register(username, password);
-        //mailEdit.setText(res);
-
+        register(username, password, mail);
     }
 
     public void register(String username,
-                         String password)
+                         String password,
+                         String mail)
     {
-        Message msg = new Message(CmdType.REGISTER,username, password);
-        Connection.getInstance().accessOutput(msg, false);
-        System.out.println("register now");
+        //todo this is register more like
+        String url = "http://10.0.2.2:8000/register";
+        HashMap<String,String> params = new HashMap<String,String>();
+        params.put("name", username);
+        params.put("password", password);
+        params.put("email", mail);
+
+        JsonObjectRequest postRequest = new JsonObjectRequest
+                (
+                    Request.Method.POST,
+                    url,
+                    new JSONObject(params),
+                    new Response.Listener<JSONObject>()
+                    {
+                        @Override
+                        public void onResponse(JSONObject response) {
+                            // response
+                        }
+                    },
+                    new Response.ErrorListener()
+                    {
+                        @Override
+                        public void onErrorResponse(VolleyError error) {
+                            // error
+                        }
+                    }
+                )
+        {
+            @Override
+            protected Response<JSONObject> parseNetworkResponse(NetworkResponse response)
+            {
+                final int mStatusCode = response.statusCode;
+                System.out.println("response is " + mStatusCode);
+                runOnUiThread(new Runnable(){
+                    public void run(){
+                        parse_response(mStatusCode);
+                    }
+                });
+                return super.parseNetworkResponse(response);
+            }
+        };
+
+        Connection.getInstance(this).addToRequestQueue(postRequest);
+    }
+
+    private void parse_response(int res)
+    {
+        if(res == 200)
+        {
+            this.show_popup(this.findViewById(android.R.id.content)
+                    , "Zarejestrowano!");
+        }
+        else //todo
+        {
+            this.show_popup(this.findViewById(android.R.id.content)
+                    , "Nazwa użytkownika zajęta!");
+        }
     }
 
     private void show_popup(View view,
@@ -88,7 +137,7 @@ public class RegisterActivity extends AppCompatActivity implements Runnable {
         // which view you pass in doesn't matter, it is only used for the window tolken
         popupWindow.showAtLocation(view, Gravity.CENTER, 0, 0);
 
-        TextView txt = findViewById(R.id.PopupPass);
+        TextView txt = popupView.findViewById(R.id.PopupPass);
         txt.setText(text);
 
         // dismiss the popup window when touched
@@ -101,31 +150,4 @@ public class RegisterActivity extends AppCompatActivity implements Runnable {
         });
     }
 
-    public void run() {
-        Connection conn = Connection.getInstance();
-        while(true)
-        {
-            try {
-                Thread.sleep(500);
-            } catch (InterruptedException e) {
-                // TODO Auto-generated catch block
-                e.printStackTrace();
-            }
-            String inp = conn.accessIntput(null, true);
-            if (inp != null)
-            {
-                System.out.println(inp);
-          /*      if (inp.contains("T"));
-                    this.show_popup(getWindow().getDecorView().findViewById(android.R.id.content)
-                            ,"Passwords do not match!");
-                if (inp.contains("F"));
-                    this.show_popup(getWindow().getDecorView().findViewById(android.R.id.content)
-                            ,"Passwords do not match!");*/
-
-                conn.accessIntput(null, false);
-                break;
-            }
-        }
-
-    }
 }

@@ -1,111 +1,62 @@
-package com.example.michal.client;;
-import java.io.InputStream;
-import java.io.OutputStream;
-import java.net.Socket;
-import java.nio.charset.StandardCharsets;
-import java.io.PrintWriter;
-import java.io.StringWriter;
+package com.example.michal.client;
 
+import android.content.Context;
+import android.graphics.Bitmap;
+import android.util.LruCache;
 
-public class Connection implements Runnable{
+import com.android.volley.Request;
+import com.android.volley.RequestQueue;
+import com.android.volley.toolbox.ImageLoader;
+import com.android.volley.toolbox.Volley;
 
-    final int PORT = 5000;
-    final String IP = "10.0.2.2";
-    //final String IP = "100.91.125.121";
-    private Socket clientSocket;
-    // private PrintWriter out;
-    // private BufferedReader inHost;
-    private	OutputStream outs;
-    private InputStream ins;
-    private Message output;
-    private String input;
+public class Connection {
     private static Connection instance;
+    private RequestQueue requestQueue;
+    private ImageLoader imageLoader;
+    private static Context ctx;
 
-    public static Connection getInstance() //todo if socket times out we should smhow delet instance
-    {
-        if(instance == null)
-            instance = new Connection();
+    private Connection(Context context) {
+        ctx = context;
+        requestQueue = getRequestQueue();
+
+        imageLoader = new ImageLoader(requestQueue,
+                new ImageLoader.ImageCache() {
+                    private final LruCache<String, Bitmap>
+                            cache = new LruCache<String, Bitmap>(20);
+
+                    @Override
+                    public Bitmap getBitmap(String url) {
+                        return cache.get(url);
+                    }
+
+                    @Override
+                    public void putBitmap(String url, Bitmap bitmap) {
+                        cache.put(url, bitmap);
+                    }
+                });
+    }
+
+    public static synchronized Connection getInstance(Context context) {
+        if (instance == null) {
+            instance = new Connection(context);
+        }
         return instance;
     }
 
-    public Connection()
-    {
-        (new Thread(this)).start();
-    }
-
-    private void setupConnection()
-    {
-        try
-        {
-            clientSocket = new Socket(IP, PORT);
-            outs = clientSocket.getOutputStream();
-            ins = clientSocket.getInputStream();
-        } catch (java.io.IOException e) {
-            //TODO
+    public RequestQueue getRequestQueue() {
+        if (requestQueue == null) {
+            // getApplicationContext() is key, it keeps you from leaking the
+            // Activity or BroadcastReceiver if someone passes one in.
+            requestQueue = Volley.newRequestQueue(ctx.getApplicationContext());
         }
-        catch (Exception e)
-        {
-            StringWriter sw = new StringWriter();
-            PrintWriter pw = new PrintWriter(sw);
-            e.printStackTrace(pw);
-            String sStackTrace = sw.toString(); // stack trace as a string
-        }
+        return requestQueue;
     }
 
-    public synchronized Message accessOutput(Message new_message, boolean read) {
-        if(!read)
-            output = new_message;
-        return output;
+    public <T> void addToRequestQueue(Request<T> req) {
+        getRequestQueue().add(req);
     }
 
-    public synchronized String accessIntput(String new_message, boolean read) {
-        if(!read)
-            input = new_message;
-        return input;
+    public ImageLoader getImageLoader() {
+        return imageLoader;
     }
-
-
-    @Override
-    public void run()
-    {
-        setupConnection();
-        while (true) {
-            try {
-                Thread.sleep(300);
-            } catch (InterruptedException e) {
-                System.out.println("sending err " + e.getMessage());
-            }
-            Message out = this.accessOutput(null, true);
-            if(out != null)
-            {
-                try {
-                    System.out.println("will send cmd " + out.getCommand().getVal());
-                    outs.write(out.getCommand().getVal().getBytes(StandardCharsets.UTF_8));
-                    System.out.println("will send cmd " + out.getCommand().getVal());
-                    outs.write(out.getMessage().getBytes(StandardCharsets.UTF_8));
-                } catch (java.io.IOException e)
-                {
-                    System.out.println(e.getMessage());
-                }  catch (Exception e){
-                    System.out.println("sending err " + e.getMessage());
-                }
-
-                byte[] res = new byte[5];
-                int count = 0;
-                while (count == 0) {
-                    try {
-                        count = ins.read(res);
-                    } catch (java.io.IOException e){
-                        System.out.println(e.getMessage());
-                        return;
-                    }
-                }
-                this.accessOutput(null, false);
-                input = new String(res, StandardCharsets.UTF_8);
-            }
-
-        }
-
-    }
-
 }
