@@ -10,58 +10,58 @@
         android:id="@+id/logOutButton"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:layout_marginStart="316dp"
-        android:layout_marginEnd="7dp"
-        android:layout_marginBottom="132dp"
-        android:text="@string/Logout"
-        app:layout_constraintBottom_toTopOf="@+id/scrollView2"
-        app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintStart_toStartOf="parent" />
-
-    <ScrollView
-        android:id="@+id/scrollView2"
-        android:layout_width="395dp"
-        android:layout_height="499dp"
-        android:layout_marginStart="8dp"
-        android:layout_marginTop="1dp"
         android:layout_marginEnd="8dp"
-        android:clipToPadding="false"
-        android:fillViewport="false"
-        android:scrollbarStyle="outsideInset"
-        app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintHorizontal_bias="0.0"
-        app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toBottomOf="@+id/logOutButton">
-
-        <LinearLayout
-            android:id="@+id/scrollLayout"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:orientation="vertical" >
-
-            <TextView
-                android:id="@+id/tv_long"
-                android:layout_width="wrap_content"
-                android:layout_height="match_parent"
-                android:text="@string/SampleText"
-                tools:layout_editor_absoluteX="205dp"
-                tools:layout_editor_absoluteY="8dp"></TextView>
-        </LinearLayout>
-
-    </ScrollView>
+        android:layout_marginBottom="8dp"
+        android:onClick="logout"
+        android:text="@string/Logout"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintEnd_toEndOf="parent" />
 
     <Button
         android:id="@+id/addButton"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:layout_marginStart="161dp"
-        android:layout_marginTop="47dp"
-        android:layout_marginEnd="162dp"
-        android:layout_marginBottom="88dp"
+        android:layout_marginStart="8dp"
+        android:layout_marginBottom="8dp"
+        android:onClick="add_image"
         android:text="@string/Add"
         app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintStart_toStartOf="parent" />
+
+    <android.support.v7.widget.RecyclerView
+        android:id="@+id/MainList"
+        android:layout_width="395dp"
+        android:layout_height="654dp"
+        android:layout_marginStart="8dp"
+        android:layout_marginTop="8dp"
+        android:layout_marginEnd="8dp"
         app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintHorizontal_bias="0.0"
         app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toBottomOf="@+id/scrollView2" />
+        app:layout_constraintTop_toTopOf="parent" >
+
+    </android.support.v7.widget.RecyclerView>
+
+    <Button
+        android:id="@+id/reloadButton"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginStart="16dp"
+        android:layout_marginBottom="8dp"
+        android:onClick="reload"
+        android:text="@string/Reload"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintStart_toEndOf="@+id/addButton" />
+
+    <Button
+        android:id="@+id/Upload"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginEnd="17dp"
+        android:layout_marginBottom="8dp"
+        android:onClick="upload"
+        android:text="Upload"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintEnd_toStartOf="@+id/logOutButton" />
 
 </android.support.constraint.ConstraintLayout>

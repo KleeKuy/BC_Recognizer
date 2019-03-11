@@ -7,10 +7,16 @@ import android.support.design.widget.Snackbar;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.Toolbar;
 import android.util.Base64;
+import android.view.Gravity;
+import android.view.LayoutInflater;
+import android.view.MotionEvent;
 import android.view.View;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.widget.EditText;
+import android.widget.LinearLayout;
+import android.widget.PopupWindow;
+import android.widget.TextView;
 
 import com.android.volley.AuthFailureError;
 import com.android.volley.NetworkResponse;
@@ -24,7 +30,9 @@ import com.android.volley.toolbox.Volley;
 
 import org.json.JSONObject;
 
+import java.io.StringWriter;
 import java.util.HashMap;
+import java.util.Iterator;
 import java.util.Map;
 
 import static android.provider.AlarmClock.EXTRA_MESSAGE;
@@ -33,6 +41,9 @@ public class MainActivity extends AppCompatActivity { //todo redundand code
 
     private EditText loginEdit;
     private EditText passwordEdit;
+    public static final String USERNAME = "MainActivity.USERNAME";
+    public static final String PASSWORD = "MainActivity.PASSWORD";
+    public static final String DATA = "MainActivity.DATA";
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -98,7 +109,9 @@ public class MainActivity extends AppCompatActivity { //todo redundand code
                        final String password)
     {
         //todo this is register more like
-        String url = "http://10.0.2.2:8000/verify";
+        String url = "http://192.168.0.16:8000/verify";
+        System.out.println("login pog");
+
 
         JsonObjectRequest postRequest = new JsonObjectRequest(Request.Method.POST, url, null,
                 new Response.Listener<JSONObject>()
@@ -112,7 +125,7 @@ public class MainActivity extends AppCompatActivity { //todo redundand code
                 {
                     @Override
                     public void onErrorResponse(VolleyError error) {
-                        // error
+                        System.out.println("error monkaS");
                     }
                 }
         ) {
@@ -127,8 +140,13 @@ public class MainActivity extends AppCompatActivity { //todo redundand code
             @Override
             protected Response<JSONObject> parseNetworkResponse(NetworkResponse response)
             {
-                int mStatusCode = response.statusCode;
-                System.out.println("response is " + mStatusCode);
+                final int mStatusCode = response.statusCode;
+                runOnUiThread(new Runnable(){
+                    public void run(){
+                        System.out.println("reponse from post");
+                        parse_response(mStatusCode, username, password);
+                    }
+                });
                 return super.parseNetworkResponse(response);
             }
         };
@@ -136,6 +154,56 @@ public class MainActivity extends AppCompatActivity { //todo redundand code
         Connection.getInstance(this).addToRequestQueue(postRequest);
 
 
+    }
+
+    private void parse_response(int res,
+                                String username,
+                                String password)    //todo more redundant code
+    {
+        if(res == 200)
+        {
+            System.out.println("we shall head to the get, POG");
+            Intent intent = new Intent(this, LoggedActivity.class);
+            intent.putExtra(USERNAME, username);
+            intent.putExtra(PASSWORD, password);
+            startActivityForResult(intent, -1);
+
+        }
+        else
+        {
+            this.show_popup(this.findViewById(android.R.id.content),
+                            "Niepoprawna nazwa użytkownika lub hasło");
+        }
+    }
+
+    private void show_popup(View view,          //todo redundant code <:(
+                            String text)
+    {
+        LayoutInflater inflater = (LayoutInflater)
+                getSystemService(LAYOUT_INFLATER_SERVICE);
+        View popupView = inflater.inflate(R.layout.popup_window, null);
+
+        // create the popup window
+        int width = LinearLayout.LayoutParams.WRAP_CONTENT;
+        int height = LinearLayout.LayoutParams.WRAP_CONTENT;
+        boolean focusable = true; // lets taps outside the popup also dismiss it
+        final PopupWindow popupWindow = new PopupWindow(popupView, width, height, focusable);
+
+        // show the popup window
+        // which view you pass in doesn't matter, it is only used for the window tolken
+        popupWindow.showAtLocation(view, Gravity.CENTER, 0, 0);
+
+        TextView txt = popupView.findViewById(R.id.PopupPass);
+        txt.setText(text);
+
+        // dismiss the popup window when touched
+        popupView.setOnTouchListener(new View.OnTouchListener() {
+            @Override
+            public boolean onTouch(View v, MotionEvent event) {
+                popupWindow.dismiss();
+                return true;
+            }
+        });
     }
 
     public void get(String username,

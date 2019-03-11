@@ -11,7 +11,9 @@ class DataBase:
     # TODO
     def view_database(self,
                       name):
-        return
+        print("Database/Data/" + name)
+        print(FileIO.read_json("Database/Data/" + name))
+        return FileIO.read_json("Database/Data/" + name)
 
     def update_record(self,
                       record):
