@@ -1,25 +1,25 @@
 from Database.DataBase import DataBase
 from Database.UsersDatabase import UsersDatabase
-from Connection.CmdType import CmdType
+import ast
+from Processing.DataExtractor import DataExtractor
 
 
 class InputHandler:
-    _instance = None
-
     def __init__(self,
                  db="user"):
+        self.DE = DataExtractor()
         self.user_db = UsersDatabase(db)
         self.temp_db = DataBase("temp")
         self.handlers = {
             "/register": lambda data, headers: self.add_user(data),
             "/verify": lambda data, headers: self.verify_user(headers),
-            "/download": lambda headers: self.get_databse(headers),
-            "/add": lambda data, headers: self.handle_image(data),
-            CmdType.ADD_RECORD.value: lambda data, ip: self.rec_data(data, ip)
+            "/download": lambda headers: self.send_databse(headers),
+            "/add": lambda data, headers: self.handle_image(data, headers),
         }
 
     def add_user(self,
-                 data):
+                 inp):
+        data = self.decode_json(inp)
         record = {
             data["name"]: {"EMAIL": data["email"],
                            "PASSWORD": data["password"]}
@@ -31,38 +31,41 @@ class InputHandler:
 
     def verify_user(self,
                     headers):
-        authorization = headers.get("Authorization")
-        creds = authorization.split(':')
-        password = creds[1]
-        name = creds[0]
+        name, password = self.parse_header(headers)
         if self.user_db.verify_user(password, name):
-     #       self.db[name] = DataBase(name)
             return 200
         else:
             return 234
 
-    def get_databse(self,
-                    headers):
-        print("here we are")
-        authorization = headers.get("Authorization")    #todo redundancy
-        if authorization is None:
-            return {"zledales": "hasloitditp"}
-        creds = authorization.split(':')
-        password = creds[1]
-        name = creds[0]
+    def send_databse(self,
+                     headers):
+        name, password = self.parse_header(headers)
         #todo authnticate
         db = self.temp_db.view_database(name + ".json")
         print(db)
         return db
 
     def handle_image(self,
-                     data):
-        print("we got ourselve an imge POG")
-
-        with open("test", 'wb') as f:
+                     data,
+                     headers):  # todo who is sending aka add headers
+        with open("test.jpg", 'wb') as f:
             f.write(data)
-
+            self.DE.extract(data)
+        # add to database(DE.extact(data))
         return 200
+
+    def decode_json(self,
+                    data):
+        ret = data.decode('utf-8')
+        return ast.literal_eval(ret)
 
     def get_handlers(self):
         return self.handlers
+
+    def parse_header(self,
+                     header):
+        authorization = header.get("Authorization")
+        creds = authorization.split(':')
+        password = creds[1]
+        name = creds[0]
+        return name, password
