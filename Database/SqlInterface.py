@@ -25,12 +25,13 @@ class SqlInterface:
     def select(self,
                ret,
                user):
-        ret = self.connection.execute("SELECT " + ret + " FROM user WHERE username='" + user + "'")
-        if ret.arraysize is not 1:
+     #   print(self.print_all())
+        res = self.connection.execute("SELECT " + ret + " FROM user WHERE username='" + user + "'")
+        if res.arraysize is not 1:
             print("Sommething went wrong in SqlInterface.select()!")
             return None
         else:
-            return ret
+            return res
 
     """ Inserts to database new values
     @:param name - str value that sepcufies new username
@@ -60,16 +61,16 @@ class SqlInterface:
         self.connection.execute("""""" + querry + """""", val)
         self.connection.commit()
 
-        self.print_all()
+      #  self.print_all()
 
     def delete(self,
                name):
-        print(name)
+     #   print(name)
         self.connection.execute("""
         DELETE FROM user WHERE username = ?
         """, (name,))
         self.connection.commit()
-        print(self.print_all())
+      #  print(self.print_all())
 
     def prepare_update_querry(self,
                               update,
@@ -78,12 +79,12 @@ class SqlInterface:
         values = [name]
         for up in update:
             querry += ", " + up + " = ?"
-            print(str(up))
+         #   print(str(up))
             values.append(update[up])
         querry += " WHERE username is ?"
         values.append(name)
-        print(values)
-        print(querry)
+      #  print(values)
+       # print(querry)
         return values, querry
 
     def print_all(self):

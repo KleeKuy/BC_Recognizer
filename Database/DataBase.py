@@ -10,14 +10,16 @@ class DataBase:
 
     def view_database(self,
                       name):
-        return self._sql.select("data", name)
+        return json.loads(self._sql.select("data", name).fetchall()[0][0])
 
     def verify_user(self,
                     name,
                     password):
         res = self._sql.select("password", name)
-        if res.fetchone() is not None:
-            correct_pass = res.fetchone()[0]
+        rec = res.fetchone()
+    #    print("rec is " + str(rec)) #TODO remove or smth
+        if rec is not None:
+            correct_pass = rec[0]
         else:
             return False
         if password == correct_pass:
@@ -27,10 +29,11 @@ class DataBase:
 
     def add_user(self,
                  name,
-                 password):
+                 password,
+                 email):
         res = self._sql.select("username", name)
         if res.fetchone() is None:
-            self._sql.insert(name, password)
+            self._sql.insert(name, password, email)
             return True
         else:
             return False
@@ -45,7 +48,6 @@ class DataBase:
                     name):
         self._sql.delete(name)
 
-
     def add_record(self,
                    name,
                    data):
@@ -59,35 +61,32 @@ class DataBase:
         except TypeError:
             update = {"data": data}
         self._sql.update(value=update, name=name)
-        return True #todo
-
-    def update_record(self,
-                      record):
-        name = (next(iter(record.keys())))
-        data = FileIO.read_json(self._file)
-        try:
-            if data[name] is not None:
-                data.update(record)
-                FileIO.write_json(self._file, data)
-                return True
-        except KeyError:
-            print("No such record!")    # TODO
-            return False
+        return True     #todo
 
     def remove_record(self,
-                      record):
-        data = FileIO.read_json(self._file)
+                      name,
+                      record_name): #todo idk we can maybe make it consistent, but also we pass redundand data then>
+        db = self.view_database(name)
         try:
-            del data[record]
+            del db[record_name]
+            self.update_data_sql(name, db)
         except KeyError:
-            print("No such record!")    # TODO
-            return False
-        FileIO.write_json(self._file, data)
-        # TODO assert termination of connection, and that db instance is None, add database removal
-        return True
+            print("there is no such record, therefore cannot be deleted!")
 
-    # TODO
-    @staticmethod
-    def handle_error():
-        print("database error")
-        return
+    def update_record(self,
+                      name,
+                      record):
+        db = self.view_database(name)
+        record_name = (next(iter(record.keys())))
+        try:
+            db[record_name] = record[record_name]
+            self.update_data_sql(name, db)
+        except KeyError:
+            print("there is no such record, therefore cannot be updated!")
+
+    def update_data_sql(self,
+                        name,
+                        db):
+        js = json.dumps(db)
+        update = {"data": js}
+        self._sql.update(value=update, name=name)

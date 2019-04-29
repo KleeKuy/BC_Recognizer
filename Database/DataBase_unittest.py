@@ -1,5 +1,5 @@
 import unittest
-from Database.UsersDatabase import UsersDatabase
+from Database.DataBase import DataBase
 from Database.Utils import Mode
 import json
 import os
@@ -8,63 +8,91 @@ from threading import Thread
 
 class DatabaseTest(unittest.TestCase):
     def setUp(self):
-        users_db = UsersDatabase("test")
-        self.verify_user = lambda user, password: users_db.sync_access(mode=Mode.VERIFY_USER, user=user,
-                                                                       password=password)
-        self.add_user = lambda user: users_db.sync_access(mode=Mode.ADD_USER, user=user)
-        self.update_user = lambda user: users_db.sync_access(mode=Mode.UPDATE_USER, user=user)
-        self.remove_user = lambda user: users_db.sync_access(mode=Mode.REMOVE_USER, user=user)
-        self.new_user = json.loads(open("Database/Data/new user.json").read())
-        self.new_user2 = json.loads(open("Database/Data/new user2.json").read())
-        self.new_user3 = json.loads(open("Database/Data/new user3.json").read())
-        self.updated = json.loads(open("Database/Data/updated user.json").read())
-        self.test_loc = "Database/Data/test.json"
+        try:
+            os.remove("Database/Data/database.db")
+        except FileNotFoundError:
+            print("file already removed!")
+        self.db = DataBase()
+        self.user1 = {
+            "name": "Rick Sanchez",
+            "password": "Wubba Lubba Dub-Dub",
+            "email": "rick@mail.com"
+        }
+        self.user2 = {
+            "name": "Talos Valcoran",
+            "password": "WDasovallia",
+            "email": "talos@echo.com"
+        }
+        self.user3 = {
+            "name": "Uzas",
+            "password": "BFDBG",
+            "email": "uzas@khorne.com"
+        }
+
+        self.add_user = lambda user: self.db.add_user(user["name"], user["password"], user["email"])
+
+        self.recname1 = "Indrick Boreale"
+        self.recname2 = "Vandred Anrathi"
+        self.recname3 = "Cyrion"
+        self.rec1 = {self.recname1: {"email": "indrick@Kaurava.ultima", "telefon": "13432425253",
+                                     "website": "www.cptBoreale.dr"}}
+        self.rec2 = {self.recname2: {"alias": "The Exalted", "email": "exalted@Covenant.com",
+                                     "adres": "The Covenant"}}
+        self.rec3 = {self.recname2: {"fax": "123221", "affiliation": "slaanesh",
+                                     "email": "Cyrion@firstclaw.covenant"}}
 
     def test_verify(self):
-        self.assert_no_db()
-        self.add_user(user=self.new_user)
-        self.assertEqual(True, self.verify_user("Wonsz", "rzeczny"), "1 Verify true test failed!")
-        self.add_user(user=self.new_user)
-        self.assertEqual(False, self.verify_user("Wonsz", "rzeczn"), "2 Verify false test failed!")
-        self.add_user(user=self.new_user)
-        self.assertEqual(False, self.verify_user("onsz", "rzeczny"), "3 Verify false test failed!")
+        self.add_user(self.user1)
+        self.assertEqual(True, self.db.verify_user(self.user1["name"], self.user1["password"]),
+                         "1 Verify true test failed!")
+        self.add_user(self.user1)
+        self.assertEqual(False, self.db.verify_user(self.user1["name"], self.user2["password"]),
+                         "2 Verify false test failed!")
+        self.add_user(user=self.user1)
+        self.assertEqual(False, self.db.verify_user(self.user2["name"], self.user1["password"]),
+                         "3 Verify false test failed!")
 
     def test_add(self):
-        self.assert_no_db()
-        self.add_user(user=self.new_user)
-        self.assertEqual(True, self.verify_user("Wonsz", "rzeczny"), "1 Add to new db test failed!")
-
-        self.add_user(user=self.new_user2)
-        self.assertEqual(True, self.verify_user("Wonsz", "rzeczny"), "2 Add to existing db test failed!")
-        self.assertEqual(True, self.verify_user("Wonsz2", "rzeczny2"), "3 Add to existing db test failed!")
-
-        self.remove_user("Wonsz")
-        self.remove_user("Wonsz2")
-        self.add_user(user=self.new_user)
-        self.assertEqual(True, self.verify_user("Wonsz", "rzeczny"), "4 Add to empty db test failed!")
-
-        self.assert_no_db()
-        res1 = self.add_user(user=self.new_user)
-        res2 = self.add_user(user=self.new_user3)
-        self.assertEqual(True, self.verify_user("Wonsz", "rzeczny"), "5 Add override test failed!")
-        self.assertEqual(True, res1, "6 Add incorect return value!")
-        self.assertEqual(False, res2, "7 Add incorect return value!!")
+        self.db.remove_user(self.user1["name"])
+        self.add_user(self.user2)
+        self.assertEqual(True, self.db.verify_user(self.user2["name"], self.user2["password"]),
+                         "1 Add to empty db test failed!")
+        self.add_user(self.user1)
+        self.db.add_user(self.user2["name"], self.user1["password"], self.user1["email"])
+        self.db.add_user(self.user1["name"], self.user1["password"], self.user1["email"])
+        self.assertEqual(True, self.db.verify_user(self.user1["name"], self.user1["password"]),
+                         "2 Add to non empty db test failed!")
+        self.assertEqual(True, self.db.verify_user(self.user2["name"], self.user2["password"]),
+                         "3 Add override db test failed!")
+        self.db.remove_user(self.user2["name"])
+        ret = self.add_user(self.user2)
+        self.assertEqual(True, ret, "4 Add incorect return value!")
+        ret = self.add_user(self.user2)
+        self.assertEqual(False, ret, "5 Add incorect return value!")
 
     def test_remove(self):
-        self.assert_no_db()
-        self.add_user(user=self.new_user)
-        self.remove_user("Wonsz")
-        self.assertEqual(False, self.verify_user("Wonsz", "rzeczny"), "1 Remove only record test failed!")
-
-        self.add_user(user=self.new_user)
-        self.add_user(user=self.new_user2)
-        self.remove_user("Wonsz")
-        self.assertEqual(False, self.verify_user("Wonsz", "rzeczny"), "2 Remove one record test failed!")
-        self.remove_user("Wonsz2")
-        self.assertEqual(False, self.verify_user("Wonsz2", "rzeczny2"), "3 Remove second record test failed!")
-
-        self.remove_user("Wonsz")
-        self.assertEqual(False, self.verify_user("Wonsz", "rzeczny"), "4 Remove not existing record test failed!")
+        self.db.remove_user(self.user1["name"])
+        self.db.remove_user(self.user2["name"])
+        self.assertEqual(False, self.db.verify_user(self.user1["name"], self.user1["password"]),
+                         "1 Remove not existing record test failed!")
+        self.add_user(self.user2)
+        self.db.remove_user(self.user2["name"])
+        self.assertEqual(False, self.db.verify_user(self.user1["name"], self.user1["password"]),
+                         "2 Remove only record test failed!")
+        self.add_user(self.user1)
+        self.add_user(self.user2)
+        self.db.remove_user(self.user1["name"])
+        self.assertEqual(False, self.db.verify_user(self.user1["name"], self.user1["password"]),
+                         "3.1 Remove one record test failed! - record not removed")
+        self.assertEqual(True, self.db.verify_user(self.user2["name"], self.user2["password"]),
+                         "3.2 Remove one record test failed! - other record corrupted!")
+        self.db.remove_user(self.user1["name"])
+        self.db.remove_user(self.user1["name"])
+        self.db.remove_user(self.user1["name"])
+        self.assertEqual(False, self.db.verify_user(self.user1["name"], self.user1["password"]),
+                         "4.1 Remove not existing record test failed! - record not removed")
+        self.assertEqual(True, self.db.verify_user(self.user2["name"], self.user2["password"]),
+                         "4.2 Remove not existing record test failed! - other record corrupted!")
 
     def test_update(self):
         self.assert_no_db()
@@ -103,19 +131,13 @@ class DatabaseTest(unittest.TestCase):
             self.verify_user("Wonsz", "rzeczny")
             self.remove_user("Wonsz2")
 
-    def assert_no_db(self):
-        try:
-            os.remove(self.test_loc)
-        except FileNotFoundError:
-            return
-
     def run_all(self):
         self.setUp()
         self.test_verify()
         self.test_add()
         self.test_remove()
-        self.test_update()
-        self.test_thread_safety()
+   #     self.test_update()
+   #     self.test_thread_safety()
 
 
 if __name__ == '__main__':
