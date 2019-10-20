@@ -6,6 +6,8 @@ class Tester:
         self.extractor = DataExtractor()
 
     def test(self):
-    #    with open("SampleImages/w1.jpg", "rb") as file:
-    #        print("Final result is " + str(self.extractor.extract(file.read())))
-        print(self.extractor.showrois())
+        with open("SampleImages/fot/1cut.jpg", "rb") as file:
+           # with open("smth.jpg", "wb") as f:
+           #     f.write(file.read())
+            print("Final result is " + str(self.extractor.extract(file.read())))
+    #    print(self.extractor.showrois())

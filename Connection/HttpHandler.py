@@ -5,18 +5,18 @@ import json
 
 class WebHandlerHttp(BaseHTTPRequestHandler):
 
-    def do_GET(self):   #TODO
-        if self.path == "/download":
-            handlers = InputHandler().get_handlers()
-            res = handlers[self.path](self.headers)
-            if res is None:
-                self.send_response(404)
-                return
-            data = json.dumps(res).encode('utf-8')
-            self.send_response(200)
-            self.send_header('content-type', ".json")
-            self.end_headers()
-            self.wfile.write(data)
+    def do_GET(self):
+        print(self.path)
+        handlers = InputHandler().get_handlers()
+        res = handlers[self.path](self.headers)
+        if res is None:
+            self.send_response(404)
+            return
+        data = json.dumps(res).encode('utf-8')
+        self.send_response(200)
+        self.send_header('content-type', ".json")
+        self.end_headers()
+        self.wfile.write(data)
 
     def do_POST(self):
         print(self.path)
@@ -27,6 +27,10 @@ class WebHandlerHttp(BaseHTTPRequestHandler):
             body = None
         else:
             body = self.rfile.read(content_len)
+        print("will now handle")
         res = handlers[self.path](body, self.headers)
+        print("done handling")
         self.send_response(res)
         self.end_headers()
+
+

@@ -10,8 +10,7 @@ class DataExtractor:
 
     def extract(self,
                 data):
-        image = data
-        decoded = cv2.imdecode(np.frombuffer(image, np.uint8), -1)
+        decoded = cv2.imdecode(np.frombuffer(data, np.uint8), -1)
         # Proprocessing
         threshed = PreProcess.thresh(image=decoded)
         # Tesseract processing

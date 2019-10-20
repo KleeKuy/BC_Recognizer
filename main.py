@@ -4,44 +4,49 @@ from Connection.WebHandler_unittest import WebServetTest
 from Connection.InputHandler import InputHandler
 from Connection.WebHandler import WebHandler
 from Connection.InputHandler_unittest import InputTest
-from threading import Thread
+from http.server import HTTPServer
+from Connection.HttpHandler import WebHandlerHttp
+from Database.DataBase_unittest import DatabaseTest
+from Processing.Processing_test import Tester
 from time import sleep
 import socket
 from Connection.HttpHandler_unittest import WebServetHttpTest
+from Database.sqlite_test import sqlite_test
 
 
-def begin():
-
-    ex = DataExtractor("w4a.jpg")
-
-#    ex.showrois()
-    post = PostProcess()
-    post.getsub(string=ex.extract(threshtype="otsu"))
-
+def test_processing():
+    Tester().test()
     return
 
 
 def main():
+
+
     #unittests()
 
     #app_test()
-    #http_test = WebServetHttpTest()
-    #http_test.test()
-    httptets = WebServetHttpTest()
-    httptets.test()
+
+   # test_processing()
+   run_app()
 
 
-def init_conn():
-    sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+def run_app():
+    server_address = ('', 8000)
+    httpd = HTTPServer(server_address, WebHandlerHttp)
+    print("start")
+    httpd.serve_forever()
 
 
 def unittests():
-   # unittestdb = DatabaseTest()
-   # unittestdb.run_all()
-    unittestweb = WebServetTest()
-    unittestweb.run_all()
-    unittestinpt = InputTest()
-    unittestinpt.run_all()
+    unittestdb = DatabaseTest()
+    unittestdb.run_all()
+    #unittestweb = WebServetTest()
+    #unittestweb.run_all()
+   # unittestinpt = InputTest()
+   # unittestinpt.run_all()
+   # httptets = WebServetHttpTest()
+   # httptets.run_all()
+    print("Somehow all tests passed :O!")
 
 
 def app_test():

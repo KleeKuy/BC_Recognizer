@@ -1,6 +1,7 @@
 from Database.Utils import FileIO, CONST
 from Database.SqlInterface import SqlInterface
 import json
+import ast
 
 
 class DataBase:
@@ -8,16 +9,24 @@ class DataBase:
     def __init__(self):
         self._sql = SqlInterface()
 
-    def view_database(self,
+    def view_database(self,                 #todo this function name seems to be abit misleading
                       name):
-        return json.loads(self._sql.select("data", name).fetchall()[0][0])
+        data = self._sql.select("data", name).fetchone()[0]     #todo seems to not work whern there is no data
+        if data == 'null':
+            return None
+        ret = ast.literal_eval(data)
+        if isinstance(ret, dict):
+            return ret
+        else:
+            return ast.literal_eval(ret)
 
     def verify_user(self,
                     name,
                     password):
         res = self._sql.select("password", name)
+        print(res)
         rec = res.fetchone()
-    #    print("rec is " + str(rec)) #TODO remove or smth
+        print("rec is " + str(rec)) #TODO remove or smth
         if rec is not None:
             correct_pass = rec[0]
         else:
@@ -48,15 +57,20 @@ class DataBase:
                     name):
         self._sql.delete(name)
 
+    """ Adds record to database
+    @:param name - str, user name
+    @:param data - dict, new record to add
+    """
     def add_record(self,
                    name,
                    data):
-        db = self._sql.select("data", name)
-        existing = json.loads(db.fetchone()[0])
-        new = json.loads(data)
+        db = self.view_database(name)
         try:
-            existing.update(new)
-            final = json.dumps(existing)
+            if db is not None:
+                db.update(data)
+            else:
+                db = data
+            final = json.dumps(db)
             update = {"data": final}
         except TypeError:
             update = {"data": data}
@@ -81,8 +95,10 @@ class DataBase:
         try:
             db[record_name] = record[record_name]
             self.update_data_sql(name, db)
+            return True
         except KeyError:
             print("there is no such record, therefore cannot be updated!")
+            return False
 
     def update_data_sql(self,
                         name,
