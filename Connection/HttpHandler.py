@@ -10,7 +10,7 @@ class WebHandlerHttp(BaseHTTPRequestHandler):
         handlers = InputHandler().get_handlers()
         res = handlers[self.path](self.headers)
         if res is None:
-            self.send_response(404)
+            self.send_response(234)
             return
         data = json.dumps(res).encode('utf-8')
         self.send_response(200)

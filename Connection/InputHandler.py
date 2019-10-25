@@ -1,11 +1,14 @@
 from Database.DataBase import DataBase
 from Database.UsersDatabase import UsersDatabase
 import ast
-import json
+import random
+import string
 from Processing.DataExtractor import DataExtractor
 
 
 class InputHandler:
+    cookies = {}
+
     def __init__(self,
                  db="user"):
         self.DE = DataExtractor()
@@ -15,11 +18,12 @@ class InputHandler:
            # "/download": lambda headers: self.send_databse(headers),
             "/add_user": lambda data, headers: self.add_user(data),
             "/remove_user": lambda data, headers: self.remove_user(data, headers),
-            "/login": lambda data, headers: self.login(headers),
+            "/login": lambda headers: self.login(headers),
             "/get_data": lambda headers: self.get_data(headers),    #todo maybe separate get and post callbacks
             "/handle_image": lambda data, headers: self.handle_image(data, headers),
             "/change_password": lambda data, headers: self.change_password(data, headers),
             "/change_data": lambda data, headers: self.change_data(data, headers),
+            "/remove_record": lambda data, headers: self.remove_record(data, headers),
         }
 
     def add_user(self,
@@ -49,7 +53,12 @@ class InputHandler:
 
     def login(self,
               headers):
-        return 200 if self.verify_user(headers) else 234 #todo return actual user data
+        if self.verify_user(headers):
+            name = self.parse_header(headers)[0]
+            InputHandler.cookies[name] = ''.join(random.choice(string.digits + string.ascii_letters) for _ in range(20))    #todo remove cookies
+            return InputHandler.cookies[name]
+        else:
+            return None
 
     def get_data(self,          #GET
                  headers):
@@ -57,6 +66,16 @@ class InputHandler:
             return 234
         name = self.parse_header(headers)[0]
         return self.db.view_database(name)
+
+    def remove_record(self,
+                      data,
+                      headers):
+        if not self.verify_user(headers):
+            return 234
+        record = data.decode('utf-8')
+        name = self.parse_header(headers)[0]
+        self.db.remove_record(name, record)
+        return 200
 
     def change_data(self,
                     data,
@@ -68,7 +87,7 @@ class InputHandler:
         return 200 if self.db.update_record(name, data) else 234
 
     def add_image(self,
-                 headers):
+                  headers):
         if not self.verify_user(headers):
             return 234
         name = self.parse_header(headers)[0]
@@ -78,7 +97,8 @@ class InputHandler:
                     headers):
         name, password = self.parse_header(headers)
         print(name, password)
-        #print(self.db.verify_user(password, name))
+        if InputHandler.cookies.get(name) == password:
+            return True
         return True if self.db.verify_user(name, password) else False
 
     def handle_image(self,

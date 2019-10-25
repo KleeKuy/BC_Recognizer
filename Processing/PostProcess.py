@@ -17,8 +17,10 @@ class PostProcess:
         result[full_name] = result.pop("temp")
         result[full_name]["email"] = self.get_email(sub)   # todo is email
         result[full_name]["website"] = self.get_website(sub)   # todo if website
-
-        strings = self.getsub()
+        i = 0
+        for phone in self.get_phone(sub):
+            i += 1
+            result[full_name]["phone" + str(i)] = phone
         return result
 
     def getsub(self):
@@ -32,7 +34,7 @@ class PostProcess:
     def get_email(self,
                   inp):
         for string in inp:
-            if "@" in string:
+            if "@" in string and "." in string:
                 return string    # is it possible that there is more thank one email?
 
     def get_website(self,
@@ -53,3 +55,21 @@ class PostProcess:
             if string in self.lastnames and string is not "":
                 print(string)
                 return string
+
+    def get_phone(self,
+                  inp):
+        ret = []
+        part = ""
+        for string in inp:
+            if any(i.isdigit() for i in string):
+                if string.isdigit():
+                    if not part:
+                        part = string
+                    else:
+                        part += string
+                if sum(c.isdigit() for c in string) >= 9:
+                    ret.append(string)
+            elif len(part) >= 9:
+                ret.append(part)
+                part = ""
+        return ret
