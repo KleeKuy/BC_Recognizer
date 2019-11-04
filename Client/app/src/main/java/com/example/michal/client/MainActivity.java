@@ -109,11 +109,10 @@ public class MainActivity extends AppCompatActivity { //todo redundand code
                        final String password)
     {
         //todo this is register more like
-        String url = "http://192.168.0.16:8000/verify";
-        System.out.println("login pog");
+        String url = "http://192.168.0.14:8000/login";
 
 
-        JsonObjectRequest postRequest = new JsonObjectRequest(Request.Method.POST, url, null,
+        JsonObjectRequest postRequest = new JsonObjectRequest(Request.Method.GET, url, null,
                 new Response.Listener<JSONObject>()
                 {
                     @Override
@@ -125,7 +124,7 @@ public class MainActivity extends AppCompatActivity { //todo redundand code
                 {
                     @Override
                     public void onErrorResponse(VolleyError error) {
-                        System.out.println("error monkaS");
+                        System.out.println(error);
                     }
                 }
         ) {
