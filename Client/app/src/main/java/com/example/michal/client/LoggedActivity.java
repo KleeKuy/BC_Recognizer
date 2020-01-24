@@ -21,6 +21,7 @@ import com.android.volley.toolbox.JsonObjectRequest;
 import com.android.volley.toolbox.StringRequest;
 
 import org.apache.commons.io.IOUtils;
+import org.json.JSONArray;
 import org.json.JSONObject;
 
 import java.io.BufferedReader;
@@ -32,9 +33,11 @@ import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
+import java.util.ArrayList;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.Iterator;
+import java.util.List;
 import java.util.Map;
 
 public class LoggedActivity extends AppCompatActivity {
@@ -43,7 +46,6 @@ public class LoggedActivity extends AppCompatActivity {
     private RecyclerView.LayoutManager layoutManager;
     private String password;
     private String username;
-    private JSONObject dataBase;
 
     static final int REQUEST_TAKE_PHOTO = 1;
     String currentPhotoPath;
@@ -57,7 +59,6 @@ public class LoggedActivity extends AppCompatActivity {
         Intent intent = getIntent();
         username = intent.getStringExtra(MainActivity.USERNAME);
         password = intent.getStringExtra(MainActivity.PASSWORD);
-        String[] myDataset = {" "};
 
         recyclerView = (RecyclerView) findViewById(R.id.MainList);
 
@@ -68,7 +69,7 @@ public class LoggedActivity extends AppCompatActivity {
         // use a linear layout manager
         layoutManager = new LinearLayoutManager(this);
         recyclerView.setLayoutManager(layoutManager);
-        mAdapter = new RecordAdapter(myDataset);
+        mAdapter = new RecordAdapter();
         recyclerView.setAdapter(mAdapter);
 
         getData();
@@ -98,14 +99,13 @@ public class LoggedActivity extends AppCompatActivity {
 
     private void getData()
     {
-        String url = "http://192.168.0.16:8000/download";
+        String url = "http://192.168.0.14:8000/get_data";
 
         JsonObjectRequest postRequest = new JsonObjectRequest(Request.Method.GET, url, null,
                 new Response.Listener<JSONObject>()
                 {
                     @Override
                     public void onResponse(JSONObject response) {
-                        System.out.println("we built this json objecton rock and roll");
                         parse_db(response);
                     }
                 },
@@ -113,13 +113,12 @@ public class LoggedActivity extends AppCompatActivity {
                 {
                     @Override
                     public void onErrorResponse(VolleyError error) {
-                        System.out.println("error monkaS");
-                        System.out.println(error.getMessage());
+                        System.out.println(error);
                     }
                 }
         ) {
             @Override
-            public Map<String, String> getHeaders() throws AuthFailureError
+            public Map<String, String> getHeaders()
             {
                 HashMap<String, String> params = new HashMap<String, String>();
                 String creds = String.format("%s:%s",username,password);
@@ -133,25 +132,25 @@ public class LoggedActivity extends AppCompatActivity {
 
     private void parse_db(JSONObject res)
     {
-        int len = res.length();
-        String[] myDataset = new String[len];
+        System.out.println(res);
+        System.out.println(res.keys());
+        ArrayList<JSONObject> records = new ArrayList<>();
         Iterator<String> keys = res.keys();
-        int i = 0;
-        while(keys.hasNext())
-        {
-            String key = keys.next();
-            String val = " ";
-            try{
-                val = res.getString(key);
-            } catch (org.json.JSONException e){
-                System.out.println(e.getMessage());
+        System.out.println(res);
+        System.out.println(res.length());
+        for (int i = 0; i < res.length(); i++) {
+            String name = keys.next();
+            try {
+                JSONObject record = new JSONObject();
+                record.put(name, res.get(name));
+                records.add(record);
+            } catch (org.json.JSONException e) {
+                System.out.println(e);
             }
-            myDataset[i] = key + "/n" + val;
-            i++;
         }
-        mAdapter.updateDataSet(myDataset);
+        System.out.println(records);
+        mAdapter.setData(records);
         mAdapter.notifyDataSetChanged();
-        dataBase = res;
     }
 
     private void dispatchTakePictureIntent() {
@@ -187,7 +186,7 @@ public class LoggedActivity extends AppCompatActivity {
                 sb.append(line);
                 firstLine = false;
             } else {
-                sb.append("\n").append(line);
+                sb.append("/n").append(line);
             }
         }
         reader.close();
@@ -230,7 +229,7 @@ public class LoggedActivity extends AppCompatActivity {
 
     private void post_image()
     {
-        String url = "http://192.168.0.16:8000/add";
+        String url = "http://192.168.0.14:8000/handle_image ";
 
         System.out.println("post image");
 

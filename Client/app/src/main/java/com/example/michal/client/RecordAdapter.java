@@ -1,12 +1,18 @@
 package com.example.michal.client;
 
 import android.support.v7.widget.RecyclerView;
+import android.util.JsonReader;
 import android.view.LayoutInflater;
 import android.view.ViewGroup;
 import android.widget.TextView;
 
+import org.json.JSONObject;
+
+import java.util.ArrayList;
+import java.util.Iterator;
+
 public class RecordAdapter extends RecyclerView.Adapter<RecordAdapter.MyViewHolder> {
-    private String[] mDataset;
+    private ArrayList<JSONObject> mDataset;
 
     // Provide a reference to the views for each data item
     // Complex data items may need more than one view per item, and
@@ -21,8 +27,12 @@ public class RecordAdapter extends RecyclerView.Adapter<RecordAdapter.MyViewHold
     }
 
     // Provide a suitable constructor (depends on the kind of dataset)
-    public RecordAdapter(String[] myDataset) {
+    public RecordAdapter(ArrayList<JSONObject> myDataset) {
         mDataset = myDataset;
+    }
+
+    public RecordAdapter() {
+        mDataset = new ArrayList<JSONObject>();
     }
 
     // Create new views (invoked by the layout manager)
@@ -43,17 +53,26 @@ public class RecordAdapter extends RecyclerView.Adapter<RecordAdapter.MyViewHold
     public void onBindViewHolder(MyViewHolder holder, int position) {
         // - get element from your dataset at this position
         // - replace the contents of the view with that element
-        holder.textView.setText(mDataset[position]);
+        Iterator<String> keys = mDataset.get(position).keys();
+        String str_Name=keys.next();
+        String title;
+        try {
+            title = mDataset.get(position).getString(str_Name);
+        } catch (org.json.JSONException e) {
+            title = "error";
+            System.out.println(e);
+        }
+        holder.textView.setText(title);
 
     }
 
     // Return the size of your dataset (invoked by the layout manager)
     @Override
     public int getItemCount() {
-        return mDataset.length;
+        return mDataset.size();
     }
 
-    public void updateDataSet(String[] DataSet)
+    public void setData(ArrayList<JSONObject> DataSet)
     {
         mDataset = DataSet;
     }
