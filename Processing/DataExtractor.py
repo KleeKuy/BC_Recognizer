@@ -23,20 +23,31 @@ class DataExtractor:
                  threshtype="otsu",
                  kernel=cv2.getStructuringElement(cv2.MORPH_CROSS, (3, 3)),
                  iterations=5):
-        image = cv2.imread("SampleImages/w3.jpg")
-        thresh = PreProcess.thresh(image=image)
-        dilated = cv2.dilate(thresh, kernel, iterations=iterations)
-        img, contours, hierarchy = cv2.findContours(dilated, cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_NONE)
-        clipped = []
-        for contour in contours:
-            print(cv2.boundingRect(contour))
-            [x, y, w, h] = cv2.boundingRect(contour)
-            cv2.rectangle(image, (x, y), (x + w, y + h), (255, 0, 0), 2)
-            clipped.append(image[y:y+h, x:x+w])
-        # cv2.imshow('captcha_result', image)
-        # cv2.waitKey()
 
-        return self.handle_clipped(clipped)
+        image = cv2.imread("SampleImages/2.jpg")
+        blut = cv2.GaussianBlur(image,(3,3),0)
+
+        thresh = PreProcess.thresh(image=blut)
+        #opening = cv2.morphologyEx(thresh, cv2.MORPH_OPEN, kernel)
+        #opening = cv2.medianBlur(thresh,7)
+       # opening = cv2.GaussianBlur(thresh,(5,5),0)
+       # kernel_to_dil=cv2.getStructuringElement(cv2.MORPH_CROSS, (5, 5))
+        #dilated = cv2.dilate(opening, kernel_to_dil, iterations=iterations)
+     #   img, contours, hierarchy = cv2.findContours(dilated, cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_NONE)
+    #    clipped = []
+    #    for contour in contours:
+   #        print(cv2.boundingRect(contour))
+      #      [x, y, w, h] = cv2.boundingRect(contour)
+     #       cv2.rectangle(image, (x, y), (x + w, y + h), (255, 0, 0), 2)
+     #       clipped.append(image[y:y+h, x:x+w])
+       # cv2.imshow('captcha_result', image)
+        cv2.imwrite("rois.jpg", thresh)
+       # cv2.waitKey()
+        #exit()
+
+        print(pytesseract.image_to_string(lang='pol', image=thresh))
+
+     #   return self.handle_clipped(clipped)
 
     def handle_clipped(self,
                        clipped):

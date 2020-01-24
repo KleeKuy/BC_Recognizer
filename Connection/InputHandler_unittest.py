@@ -14,6 +14,14 @@ class InputTest(unittest.TestCase):
         self.password = self.user[self.name]["PASSWORD"]
         self.email = self.user[self.name]["email"]
 
+    def test_handle_image(self):
+        self.handler = InputHandler(db="test")
+        header = {'Authorization':"michau:pass2"}
+        with open("wizytowka/1.jpg", "rb") as file:
+            self.handler.handle_image(file.read(), header)
+            db = DataBase()
+            print(db.view_database("michau"))
+
     def test_add_user(self):
         try:
             os.remove("Database/Data/test.json")

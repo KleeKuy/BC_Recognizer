@@ -14,6 +14,8 @@ class DataBase:
         data = self._sql.select("data", name).fetchone()[0]     #todo seems to not work whern there is no data
         if data == 'null':
             return None
+        print("this is the data")
+        print(data)
         ret = ast.literal_eval(data)
         if isinstance(ret, dict):
             return ret

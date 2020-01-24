@@ -11,12 +11,18 @@ class PostProcess:
     def get_record(self):
         result = {"temp": {}}
         sub = self.getsub()
-        name = self.get_name(sub)
-        last_name = self.get_last_name(sub)
-        full_name = name + " " + last_name
+        name = self.get_name(sub, self.names)
+        last_name = self.get_name(sub, self.lastnames)
+        full_name = name
+        if last_name:
+            full_name += " " + last_name
         result[full_name] = result.pop("temp")
-        result[full_name]["email"] = self.get_email(sub)   # todo is email
-        result[full_name]["website"] = self.get_website(sub)   # todo if website
+        mail = self.get_email(sub)
+        if mail:
+            result[full_name]["email"] = mail
+        website = self.get_website(sub)
+        if website:
+            result[full_name]["website"] = website
         i = 0
         for phone in self.get_phone(sub):
             i += 1
@@ -44,16 +50,15 @@ class PostProcess:
                 return string
 
     def get_name(self,      #todo optimization?
-                 inp):
+                 inp,
+                 names):
         for string in inp:
-            if string in self.names:
-                return string
-
-    def get_last_name(self,      #todo optimization?
-                      inp):
-        for string in inp:
-            if string in self.lastnames and string is not "":
-                print(string)
+            if string is "":
+                continue
+            whole_word = '\n'
+            whole_word += string
+            whole_word += '\n'
+            if whole_word.lower() in names.lower() and string is not "":
                 return string
 
     def get_phone(self,
