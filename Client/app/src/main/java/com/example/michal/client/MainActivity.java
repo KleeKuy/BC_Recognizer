@@ -52,14 +52,6 @@ public class MainActivity extends AppCompatActivity { //todo redundand code
         Toolbar toolbar = (Toolbar) findViewById(R.id.toolbar);
         setSupportActionBar(toolbar);
 
-        FloatingActionButton fab = (FloatingActionButton) findViewById(R.id.fab);
-        fab.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View view) {
-                Snackbar.make(view, "Replace with your own action", Snackbar.LENGTH_LONG)
-                        .setAction("Action", null).show();
-            }
-        });
         loginEdit = findViewById(R.id.LoginUsernameEdit);
         passwordEdit = findViewById(R.id.LoginPasswordEdit);
     }
@@ -159,6 +151,7 @@ public class MainActivity extends AppCompatActivity { //todo redundand code
                                 String username,
                                 String password)    //todo more redundant code
     {
+        System.out.println("response is " + res);
         if(res == 200)
         {
             System.out.println("we shall head to the get, POG");

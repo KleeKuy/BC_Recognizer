@@ -11,8 +11,11 @@ class WebHandlerHttp(BaseHTTPRequestHandler):
         res = handlers[self.path](self.headers)
         if res is None:
             self.send_response(234)
+            self.end_headers()
+            print("sending 234")
             return
         data = json.dumps(res).encode('utf-8')
+        print("sending 200")
         self.send_response(200)
         self.send_header('content-type', ".json")
         self.end_headers()

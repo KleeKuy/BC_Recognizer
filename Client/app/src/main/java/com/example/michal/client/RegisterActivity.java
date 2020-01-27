@@ -62,7 +62,7 @@ public class RegisterActivity extends AppCompatActivity{
                          String mail)
     {
         //todo this is register more like
-        String url = "http://10.0.2.2:8000/register";
+        String url = "http://192.168.0.14:8000/add_user";
         HashMap<String,String> params = new HashMap<String,String>();
         params.put("name", username);
         params.put("password", password);

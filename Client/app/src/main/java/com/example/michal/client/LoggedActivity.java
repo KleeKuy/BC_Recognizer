@@ -1,16 +1,20 @@
 package com.example.michal.client;
 
 import android.content.Intent;
+import android.graphics.Bitmap;
 import android.icu.text.SimpleDateFormat;
 import android.net.Uri;
 import android.os.Environment;
+import android.os.health.SystemHealthManager;
 import android.provider.MediaStore;
 import android.support.v4.content.FileProvider;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
 import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
+import android.text.Editable;
 import android.view.View;
+import android.widget.EditText;
 
 import com.android.volley.AuthFailureError;
 import com.android.volley.NetworkResponse;
@@ -25,6 +29,7 @@ import org.json.JSONArray;
 import org.json.JSONObject;
 
 import java.io.BufferedReader;
+import java.io.ByteArrayOutputStream;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileNotFoundException;
@@ -44,6 +49,7 @@ public class LoggedActivity extends AppCompatActivity {
     private RecyclerView recyclerView;
     private RecordAdapter mAdapter;
     private RecyclerView.LayoutManager layoutManager;
+    private EditText searchText;
     private String password;
     private String username;
 
@@ -72,6 +78,23 @@ public class LoggedActivity extends AppCompatActivity {
         mAdapter = new RecordAdapter();
         recyclerView.setAdapter(mAdapter);
 
+        searchText = (EditText) findViewById(R.id.searchText);
+
+        searchText.addTextChangedListener(new TextWatcher() {
+
+            public void afterTextChanged(Editable s) {
+
+            }
+
+            public void beforeTextChanged(CharSequence s, int start, int count, int after) {}
+
+            public void onTextChanged(CharSequence s, int start, int before, int count) {
+                System.out.print("onTextCanged");
+                System.out.print(s.toString());
+                mAdapter.filter(s.toString());
+            }
+        });
+
         getData();
 
     }
@@ -94,8 +117,6 @@ public class LoggedActivity extends AppCompatActivity {
     public void logout(View view) { finish(); }
 
     public void reload(View view) { getData(); }
-
-    public void upload(View view) { post_image(); }
 
     private void getData()
     {
@@ -155,25 +176,26 @@ public class LoggedActivity extends AppCompatActivity {
 
     private void dispatchTakePictureIntent() {
         Intent takePictureIntent = new Intent(MediaStore.ACTION_IMAGE_CAPTURE);
-        // Ensure that there's a camera activity to handle the intent
+        System.out.println("to dispacz");
         if (takePictureIntent.resolveActivity(getPackageManager()) != null) {
-            // Create the File where the photo should go
-            File photoFile = null;
-            try {
-                photoFile = createImageFile();
-            } catch (IOException ex) {
-                System.out.println(ex.getMessage());
-            }
-            // Continue only if the File was successfully created
-            if (photoFile != null) {
-                Uri photoURI = FileProvider.getUriForFile(this,
-                        "com.example.android.fileprovider",
-                        photoFile);
-                takePictureIntent.putExtra(MediaStore.EXTRA_OUTPUT, photoURI);
-                startActivityForResult(takePictureIntent, REQUEST_TAKE_PHOTO);
-            }
+            startActivityForResult(takePictureIntent, REQUEST_TAKE_PHOTO);
+            System.out.println("activity started");
         }
     }
+
+    @Override
+    protected void onActivityResult(int requestCode, int resultCode, Intent data) {
+        if (requestCode == REQUEST_TAKE_PHOTO && resultCode == RESULT_OK) {
+            Bundle extras = data.getExtras();
+            Bitmap imageBitmap = (Bitmap) extras.get("data");
+            System.out.println("activity result");
+            ByteArrayOutputStream stream = new ByteArrayOutputStream();
+            imageBitmap.compress(Bitmap.CompressFormat.PNG, 100, stream);
+            byte[] byteArray = stream.toByteArray();
+            post_image(byteArray);
+        }
+    }
+
 
     public static String convertStreamToString(InputStream is) throws IOException {
         // http://www.java2s.com/Code/Java/File-Input-Output/ConvertInputStreamtoString.htm
@@ -227,7 +249,7 @@ public class LoggedActivity extends AppCompatActivity {
         return bytes;
     }
 
-    private void post_image()
+    private void post_image(final byte[] image)
     {
         String url = "http://192.168.0.14:8000/handle_image ";
 
@@ -296,14 +318,7 @@ public class LoggedActivity extends AppCompatActivity {
             }
             @Override
             public byte[] getBody(){
-                File file = new File(currentPhotoPath);
-                try {
-                   return fullyReadFileToBytes(file);
-                } catch (IOException e)
-                {
-                    System.out.println(e.getMessage());
-                    return null;
-                }
+                return image;
             }
 
             };
@@ -314,13 +329,6 @@ public class LoggedActivity extends AppCompatActivity {
     public void add_image(View view)    //todo delete those file
     {
         dispatchTakePictureIntent();
-        Intent mediaScanIntent = new Intent(Intent.ACTION_MEDIA_SCANNER_SCAN_FILE);
-        System.out.println(currentPhotoPath);
-        File f = new File(currentPhotoPath);
-        Uri contentUri = Uri.fromFile(f);
-        mediaScanIntent.setData(contentUri);
-        this.sendBroadcast(mediaScanIntent);
-
     }
 
 
